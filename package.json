@@ -1,0 +1,18 @@
+{
+  "name": "ssp-gantt-editor",
+  "version": "1.0.0",
+  "description": "Interactive Gantt chart editor for the Start.io Modernized SSP project",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node server.js"
+  },
+  "dependencies": {
+    "express": "^4.18.2"
+  },
+  "engines": {
+    "node": ">=16.0.0"
+  },
+  "author": "Royi Porat",
+  "license": "UNLICENSED"
+}

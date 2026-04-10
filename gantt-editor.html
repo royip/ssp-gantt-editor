@@ -302,6 +302,46 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 .wlc-skip{font-size:11px;color:#94a3b8;cursor:pointer;background:none;border:none;
   margin-top:6px;display:block;width:100%;text-align:center;padding:4px}
 .wlc-skip:hover{color:#475569}
+.wlc-btn.wlc-server{border-color:#bfdbfe;background:#f0f7ff}
+.wlc-btn.wlc-server:hover:not(:disabled){border-color:#3b82f6;background:#e0f0ff;box-shadow:0 2px 8px rgba(59,130,246,.18)}
+
+/* ── Read-only / Admin mode ── */
+#mode-badge{font-size:11px;font-weight:700;padding:3px 9px;border-radius:5px;
+  letter-spacing:.2px;white-space:nowrap;display:none}
+#mode-badge.ro{background:#fee2e2;color:#dc2626;display:inline-block}
+#mode-badge.admin{background:#dcfce7;color:#15803d;display:inline-block}
+#btn-admin-lock{background:#1e3a5f;color:#93c5fd;border:1px solid #2d4f7c}
+#btn-admin-lock:hover{background:#1e40af;color:#fff}
+#btn-admin-lock.unlocked{background:#15803d;color:#fff;border-color:#15803d}
+#btn-admin-lock.unlocked:hover{background:#166534}
+
+/* Admin password modal */
+#admin-pw-ov .modal{width:360px;text-align:center}
+#admin-pw-ov .modal h3{margin-bottom:8px}
+.admin-pw-sub{font-size:12px;color:#64748b;margin-bottom:18px}
+#admin-pw-input{width:100%;padding:9px 12px;border:1.5px solid #e2e8f0;border-radius:8px;
+  font-size:14px;text-align:center;letter-spacing:3px;outline:none;margin-bottom:6px}
+#admin-pw-input:focus{border-color:#3b82f6}
+#admin-pw-input.shake{animation:shake .35s ease}
+#admin-pw-err{font-size:11px;color:#dc2626;min-height:16px;margin-bottom:10px}
+@keyframes shake{0%,100%{transform:translateX(0)}20%{transform:translateX(-6px)}
+  40%{transform:translateX(6px)}60%{transform:translateX(-4px)}80%{transform:translateX(4px)}}
+
+/* Read-only: disable visual editing cues */
+body.read-only .bar{cursor:default!important}
+body.read-only .bar-resize-handle{display:none!important}
+body.read-only .drag-handle{cursor:default!important;opacity:.3}
+body.read-only #lbl-col-hdr .col-resize-hdl{display:none}
+body.read-only .row-label[contenteditable]{pointer-events:none}
+body.read-only #chart-title{pointer-events:none}
+body.read-only #qadd-wrap{opacity:.4;pointer-events:none}
+body.read-only .m-edit-btn{display:none}
+
+/* Cloud save status */
+#cloud-status{font-size:11px;white-space:nowrap}
+#cloud-status.saving{color:#60a5fa}
+#cloud-status.saved{color:#4ade80}
+#cloud-status.error{color:#f87171}
 
 /* ── Tutorial modal ── */
 #tutorial-ov .modal{width:520px;max-height:82vh;overflow-y:auto;padding-bottom:20px}
@@ -358,6 +398,9 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
   <button class="btn bs btn-icon" onclick="openJSONFile()" title="Load Gantt Data">📂</button>
   <input id="file-input" type="file" accept=".json" style="display:none" onchange="loadJSONFallback(event)">
   <span id="save-status" style="font-size:11px;color:#4ade80;opacity:0;transition:opacity .6s;white-space:nowrap"></span>
+  <span id="cloud-status"></span>
+  <span id="mode-badge"></span>
+  <button class="btn btn-icon" id="btn-admin-lock" onclick="openAdminModal()" title="Admin mode — click to unlock editing" style="display:none">🔒</button>
 </div>
 
 <!-- ── Gantt ── -->
@@ -525,15 +568,29 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
     </div>
   </button>
 
-  <button class="wlc-btn" disabled>
+  <button class="wlc-btn wlc-server" onclick="closeModal('welcome-ov');loadFromServer()">
     <div class="wlc-btn-icon">☁️</div>
     <div class="wlc-btn-body">
-      <div class="wlc-btn-title">Work on Cloud <span class="wlc-soon">Coming Soon</span></div>
-      <div class="wlc-btn-desc">Collaborate with teammates or access your Gantt from any device</div>
+      <div class="wlc-btn-title">View Latest Gantt <span class="wlc-soon" style="background:#dbeafe;color:#1d4ed8;border-color:#93c5fd">Read Only</span></div>
+      <div class="wlc-btn-desc">Load the shared team Gantt from the server — view and filter, no editing needed</div>
     </div>
   </button>
 
   <button class="wlc-skip" onclick="closeModal('welcome-ov')">Skip for now</button>
+</div></div>
+
+<!-- ── Admin password modal ── -->
+<div class="ov hidden" id="admin-pw-ov">
+<div class="modal">
+  <h3>🔒 Admin Access</h3>
+  <div class="admin-pw-sub">Enter the admin password to enable editing</div>
+  <input id="admin-pw-input" type="password" placeholder="Password" autocomplete="off"
+    onkeydown="if(event.key==='Enter')verifyAdminPassword()">
+  <div id="admin-pw-err"></div>
+  <div style="display:flex;gap:8px;justify-content:center;margin-top:4px">
+    <button class="btn bs" onclick="closeModal('admin-pw-ov')">Cancel</button>
+    <button class="btn bp" onclick="verifyAdminPassword()">Unlock</button>
+  </div>
 </div></div>
 
 <!-- ── Tutorial modal ── -->
@@ -773,6 +830,116 @@ let state = {
   ]
 };
 
+// ── Server / Read-only / Admin mode ──────────────────────────────────────────
+let _readOnly      = false;  // true in read-only server mode
+let _isServerMode  = false;  // true when connected to /api/gantt
+let _adminUnlocked = false;  // true once admin password verified
+
+function setServerMode(readOnly) {
+  _isServerMode  = true;
+  _readOnly      = readOnly;
+  _adminUnlocked = !readOnly;
+  document.body.classList.toggle('read-only', readOnly);
+  const badge = document.getElementById('mode-badge');
+  badge.className = readOnly ? 'ro' : 'admin';
+  badge.textContent = readOnly ? '🔒 Read Only' : '✏️ Admin';
+  const lockBtn = document.getElementById('btn-admin-lock');
+  lockBtn.style.display = '';
+  lockBtn.textContent   = readOnly ? '🔒' : '🔓';
+  lockBtn.title         = readOnly ? 'Admin mode — click to unlock editing' : 'Admin mode active — click to lock';
+  lockBtn.classList.toggle('unlocked', !readOnly);
+}
+
+async function loadFromServer() {
+  const cs = document.getElementById('cloud-status');
+  cs.className = 'saving'; cs.textContent = '⟳ Loading…';
+  try {
+    const res  = await fetch('/api/gantt');
+    const data = await res.json();
+    if (data && typeof data === 'object' && data.tasks) {
+      state = data;
+      // Normalize backward compat fields
+      if (!state.customStatuses) state.customStatuses = [];
+      state.tasks.forEach(t => {
+        if (!t.gs)        t.gs        = t.g ? [t.g] : [];
+        if (!t.blocks)    t.blocks    = [];
+        if (!t.blockedBy) t.blockedBy = [];
+      });
+      if (state.lblW) { lblW = state.lblW; document.documentElement.style.setProperty('--lw', lblW + 'px'); }
+      render();
+      cs.className = 'saved'; cs.textContent = '✓ Loaded from server';
+    } else {
+      cs.className = 'error'; cs.textContent = '⚠ No server data yet';
+    }
+  } catch(e) {
+    cs.className = 'error'; cs.textContent = '⚠ Server unreachable';
+  }
+  setServerMode(true);  // start in read-only
+  setTimeout(() => { if (cs.textContent.startsWith('✓')) cs.textContent = ''; }, 3000);
+}
+
+async function saveToCloud() {
+  if (!_isServerMode || !_adminUnlocked) return;
+  const cs = document.getElementById('cloud-status');
+  cs.className = 'saving'; cs.textContent = '⟳ Saving…';
+  try {
+    const pw  = sessionStorage.getItem('gantt-admin-pw') || '';
+    const res = await fetch('/api/gantt', {
+      method: 'POST',
+      headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({ password: pw, data: state })
+    });
+    if (res.ok) {
+      cs.className = 'saved'; cs.textContent = '✓ Saved to server';
+      setTimeout(() => { cs.textContent = ''; }, 2500);
+    } else {
+      cs.className = 'error'; cs.textContent = '⚠ Save failed';
+    }
+  } catch(e) {
+    cs.className = 'error'; cs.textContent = '⚠ Server unreachable';
+  }
+}
+
+function openAdminModal() {
+  if (_adminUnlocked) {
+    // Already admin — clicking again locks back to read-only
+    _adminUnlocked = false;
+    sessionStorage.removeItem('gantt-admin-pw');
+    setServerMode(true);
+    return;
+  }
+  document.getElementById('admin-pw-input').value = '';
+  document.getElementById('admin-pw-err').textContent = '';
+  openModal('admin-pw-ov');
+  setTimeout(() => document.getElementById('admin-pw-input').focus(), 80);
+}
+
+async function verifyAdminPassword() {
+  const pw  = document.getElementById('admin-pw-input').value;
+  const err = document.getElementById('admin-pw-err');
+  err.textContent = '';
+  try {
+    const res = await fetch('/api/admin/verify', {
+      method: 'POST',
+      headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({ password: pw })
+    });
+    if (res.ok) {
+      sessionStorage.setItem('gantt-admin-pw', pw);
+      closeModal('admin-pw-ov');
+      setServerMode(false);  // switch to admin (not read-only)
+    } else {
+      err.textContent = 'Wrong password. Try again.';
+      const inp = document.getElementById('admin-pw-input');
+      inp.classList.add('shake');
+      setTimeout(() => inp.classList.remove('shake'), 400);
+    }
+  } catch(e) {
+    err.textContent = 'Cannot reach server.';
+  }
+}
+// ─────────────────────────────────────────────────────────────────────────────
+
 // Load from localStorage if available; migrate older saves to v2 model
 let _isFirstLoad = false;
 try {
@@ -807,7 +974,11 @@ function save() {
   state.lblW = lblW;
   state.colPinned = document.getElementById('gantt').classList.contains('col-pinned');
   try { localStorage.setItem('ssp-gantt-state', JSON.stringify(state)); } catch(e){}
-  autoSaveToFile();
+  if (_isServerMode && _adminUnlocked) {
+    saveToCloud();
+  } else {
+    autoSaveToFile();
+  }
 }
 
 // UI filter/sort state (not persisted)
@@ -1157,6 +1328,7 @@ function drawDependencyLines() {
 let drag = null, wasDragged = false;
 
 function onBarDown(e, tid) {
+  if (_readOnly) return;
   hideBarTooltip();  // dismiss tooltip on drag/resize start
   const isResize = e.target.dataset.resize;
   const task = state.tasks.find(t => t.id === tid);
@@ -1194,6 +1366,7 @@ function onColResizeDown(e) {
 }
 
 function onVDragStart(e, tid, gid) {
+  if (_readOnly) return;
   e.stopPropagation();
   e.preventDefault();
   vdrag = {tid, gid, overTid: null, overPos: null};
@@ -1216,6 +1389,7 @@ function reorderTask(tid, targetTid, pos) {
 let gdrag = null;
 
 function onGDragStart(e, gid) {
+  if (_readOnly) return;
   e.stopPropagation();
   e.preventDefault();
   gdrag = {gid, overGid: null, overPos: null};
@@ -1527,6 +1701,21 @@ function openTaskModal(tid, defaultGroup) {
   populateStatusSel(isNew ? 'todo' : (task?.st || 'wip'));
   toggleColorRow();
   document.getElementById('t-status').onchange = toggleColorRow;
+
+  // Read-only: disable all editing controls, hide save/delete
+  const ro = _readOnly;
+  ['t-name','t-ticket','t-moreinfo','t-comments'].forEach(id => {
+    const el = document.getElementById(id);
+    el.readOnly = ro; el.style.background = ro ? '#f8fafc' : '';
+  });
+  ['t-start','t-end','t-status','t-color','t-group'].forEach(id => {
+    document.getElementById(id).disabled = ro;
+  });
+  document.getElementById('t-del-btn').style.display = (isNew || ro) ? 'none' : '';
+  const saveBtn = document.querySelector('#task-ov .ma .btn.bp');
+  if (saveBtn) saveBtn.style.display = ro ? 'none' : '';
+  document.querySelectorAll('#task-ov .dep-row').forEach(el => el.style.display = ro ? 'none' : '');
+  if (ro && isNew) { return; }  // don't open for new task in read-only
   openModal('task-ov');
 }
 
@@ -1537,6 +1726,7 @@ function toggleColorRow() {
 }
 
 function saveTask() {
+  if (_readOnly) return;
   const tid    = document.getElementById('t-id').value;
   const gSel   = document.getElementById('t-group');
   const selectedGs = Array.from(gSel.selectedOptions).map(o => o.value).filter(Boolean);
@@ -1571,6 +1761,7 @@ function saveTask() {
 }
 
 function deleteTask() {
+  if (_readOnly) return;
   const tid = document.getElementById('t-id').value;
   if (!confirm('Delete this task?')) return;
   // Clean up reverse dep refs
@@ -1600,6 +1791,7 @@ function saveGroup() {
   render();
 }
 function deleteGroup(id) {
+  if (_readOnly) return;
   if (!confirm('Delete this group and all its tasks?')) return;
   const deletedIds = state.tasks
     .filter(t => (t.gs || [t.g]).every(gid => gid === id))
@@ -1656,6 +1848,7 @@ function saveMilestone() {
   render();
 }
 function deleteMilestone() {
+  if (_readOnly) return;
   const mid = document.getElementById('ms-id').value;
   if (!confirm('Delete this milestone?')) return;
   state.milestones = state.milestones.filter(m => m.id !== mid);
@@ -2014,6 +2207,7 @@ function openSettingsModal() {
 //  QUICK-ADD DROPDOWN
 // ═══════════════════════════════════════════════════════════════════
 function toggleQAdd(e) {
+  if (_readOnly) return;
   e.stopPropagation();
   const menu = document.getElementById('qadd-menu');
   menu.classList.toggle('open');
