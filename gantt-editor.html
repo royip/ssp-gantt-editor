@@ -1,0 +1,2059 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>SSP Gantt Editor</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:#f1f5f9;color:#1e293b}
+
+/* ── Toolbar ── */
+#toolbar{position:sticky;top:0;z-index:200;background:#1e293b;padding:9px 14px;
+  display:flex;align-items:center;gap:8px;flex-wrap:wrap;box-shadow:0 2px 10px rgba(0,0,0,.25)}
+#chart-title{color:#f1f5f9;font-size:15px;font-weight:700;flex:1;min-width:180px;
+  outline:none;border-bottom:1px solid transparent;cursor:text}
+#chart-title:focus{border-bottom:1px solid #60a5fa}
+.btn{padding:5px 11px;border:none;border-radius:6px;cursor:pointer;font-size:12px;font-weight:600;
+  display:flex;align-items:center;gap:4px;white-space:nowrap}
+.bp{background:#3b82f6;color:#fff}.bp:hover{background:#2563eb}
+.bs{background:#334155;color:#cbd5e1}.bs:hover{background:#475569}
+.bg{background:#059669;color:#fff}.bg:hover{background:#047857}
+.bd{background:#dc2626;color:#fff}.bd:hover{background:#b91c1c}
+.bw{background:#d97706;color:#fff}.bw:hover{background:#b45309}
+.sep{width:1px;height:22px;background:#334155;margin:0 2px}
+.btn.active{outline:2px solid rgba(255,255,255,.55);outline-offset:-2px}
+
+/* Sort select */
+#sort-sel{background:#334155;color:#cbd5e1;border:none;border-radius:6px;
+  padding:5px 8px;font-size:12px;font-weight:600;cursor:pointer;outline:none;height:30px}
+#sort-sel:hover{background:#475569}
+#sort-sel option{background:#1e293b}
+
+/* Dep toggle button group */
+.btn-dep-wrap{display:flex;align-items:stretch}
+.btn-dep-wrap .btn{border-radius:6px 0 0 6px}
+.sub-btn{padding:0 9px;border:1px solid #475569;border-left:none;border-radius:0 6px 6px 0;
+  background:#1e293b;color:#94a3b8;cursor:pointer;font-size:11px;font-weight:600;
+  white-space:nowrap;display:flex;align-items:center}
+.sub-btn:hover{background:#334155;color:#cbd5e1}
+.sub-btn.active{background:#334155;color:#fff;border-color:#60a5fa}
+
+/* ── Page ── */
+#page{padding:14px;overflow:auto;height:calc(100vh - 52px)}
+
+/* ── Gantt shell ── */
+#gantt{background:#fff;border-radius:10px;box-shadow:0 2px 16px rgba(0,0,0,.08);
+  min-width:max-content}
+
+/* ── Header — sticky within #page ── */
+#g-head{display:flex;background:#1e293b;position:sticky;top:0;z-index:100;
+  border-bottom:3px solid #0f172a;border-radius:10px 10px 0 0}
+.lbl-col{flex:0 0 var(--lw);min-width:var(--lw);border-right:2px solid #334155}
+#g-head .lbl-col{display:flex;align-items:flex-end;padding:0 12px 8px;background:#1e293b;
+  color:#94a3b8;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;
+  position:relative}
+#month-wrap{display:flex;flex:0 0 calc(var(--nM)*var(--cw));position:relative;padding-top:30px}
+.m-cell{flex:0 0 var(--cw);text-align:center;padding:8px 0;color:#cbd5e1;font-size:12px;
+  font-weight:600;border-right:1px solid #334155;position:relative;cursor:pointer}
+.m-cell:last-child{border-right:none}
+.m-cell::after{content:'';position:absolute;top:65%;bottom:5%;left:50%;width:1px;background:#334155;pointer-events:none}
+.m-cell:hover .m-edit-btn{opacity:1}
+.m-cell input{background:#1e293b;border:none;color:inherit;font-size:12px;font-weight:600;
+  text-align:center;width:100%;outline:none;cursor:text;position:relative;z-index:1}
+.m-edit-btn{position:absolute;top:1px;right:2px;font-size:8px;opacity:0;color:#64748b;
+  cursor:pointer;background:none;border:none;padding:0;line-height:1}
+
+/* ── Label column resize handle ── */
+.col-resize-hdl{position:absolute;right:-3px;top:0;bottom:0;width:6px;
+  cursor:col-resize;z-index:110;background:transparent;border-radius:2px}
+.col-resize-hdl:hover,.col-resize-hdl.dragging{background:rgba(96,165,250,.5)}
+
+/* ── Pin / freeze column button ── */
+.pin-col-btn{position:absolute;right:18px;top:50%;transform:translateY(-50%);
+  background:none;border:none;cursor:pointer;font-size:11px;padding:2px 3px;
+  border-radius:3px;color:#64748b;opacity:.55;line-height:1;user-select:none}
+.pin-col-btn:hover{opacity:1;color:#93c5fd}
+.pin-col-btn.active{opacity:1;color:#3b82f6}
+
+/* ── Frozen column styles ── */
+#gantt.col-pinned #g-head .lbl-col{position:sticky;left:0;z-index:101;background:#1e293b;
+  box-shadow:3px 0 8px rgba(0,0,0,.18)}
+#gantt.col-pinned .t-lbl{position:sticky;left:0;z-index:10;background:#fff;
+  box-shadow:2px 0 6px rgba(0,0,0,.07)}
+#gantt.col-pinned .t-row:nth-child(even) .t-lbl{background:#fafbff}
+#gantt.col-pinned .t-row:hover .t-lbl{background:#f0f7ff}
+#gantt.col-pinned .g-grp{position:sticky;left:0;z-index:15}
+
+/* ── Group header ── */
+.g-grp{display:flex;align-items:center;height:28px;padding:0 10px;gap:6px;
+  border-bottom:1px solid rgba(255,255,255,.1);cursor:default}
+.grp-strip{width:4px;height:100%;flex-shrink:0;border-radius:2px}
+.grp-name{flex:1;color:#fff;font-size:12px;font-weight:700;outline:none;
+  background:transparent;border:none;cursor:text;letter-spacing:.2px}
+.grp-name:focus{background:rgba(255,255,255,.1);border-radius:3px;padding:0 4px}
+.grp-timeline{flex:0 0 calc(var(--nM)*var(--cw))}
+.btn-add-t{padding:2px 7px;border-radius:4px;font-size:10px;font-weight:600;
+  background:rgba(255,255,255,.15);color:#fff;border:none;cursor:pointer}
+.btn-add-t:hover{background:rgba(255,255,255,.28)}
+.btn-del-g{padding:2px 5px;border-radius:4px;font-size:10px;background:rgba(255,0,0,.2);
+  color:#fca5a5;border:none;cursor:pointer}
+.btn-del-g:hover{background:rgba(255,0,0,.35)}
+.grp-color-btn{width:16px;height:16px;border-radius:3px;border:1.5px solid rgba(255,255,255,.4);
+  cursor:pointer;padding:0;flex-shrink:0;background:none}
+.grp-color-btn::-webkit-color-swatch-wrapper{padding:0}
+.grp-color-btn::-webkit-color-swatch{border:none;border-radius:2px}
+
+/* ── Drag handles ── */
+.drag-hdl{color:rgba(0,0,0,.22);font-size:13px;cursor:grab;user-select:none;
+  flex-shrink:0;padding:0 2px;line-height:1}
+.drag-hdl:hover{color:rgba(0,0,0,.5)}
+.grp-drag{color:rgba(255,255,255,.35);font-size:13px;cursor:grab;user-select:none;
+  flex-shrink:0;padding:0 2px;line-height:1}
+.grp-drag:hover{color:rgba(255,255,255,.7)}
+
+/* ── Drop indicators ── */
+.t-row.drop-above{box-shadow:inset 0 2px 0 #3b82f6}
+.t-row.drop-below{box-shadow:inset 0 -2px 0 #3b82f6}
+.g-grp.drop-above{box-shadow:inset 0 2px 0 #93c5fd}
+.g-grp.drop-below{box-shadow:inset 0 -2px 0 #93c5fd}
+
+/* ── Task row ── */
+.t-row{display:flex;align-items:center;height:30px;border-bottom:1px solid #f0f4f8}
+.t-row:nth-child(even){background:#fafbff}
+.t-row:hover{background:#f0f7ff}
+.t-lbl{flex:0 0 var(--lw);min-width:var(--lw);padding:0 8px;display:flex;
+  align-items:center;justify-content:space-between;border-right:2px solid #e2e8f0;overflow:hidden;gap:4px}
+.t-name{font-size:10.5px;color:#374151;flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.t-ticket{font-size:8.5px;color:#94a3b8;font-family:monospace;white-space:nowrap}
+.t-tl{position:relative;flex:0 0 calc(var(--nM)*var(--cw));height:30px;overflow:hidden;isolation:isolate;z-index:1}
+.dep-dot{font-size:9px;color:#dc2626;flex-shrink:0;line-height:1}
+
+/* ── Bars ── */
+.g-bar{position:absolute;top:5px;height:20px;border-radius:4px;cursor:grab;
+  display:flex;align-items:center;justify-content:center;
+  border-width:1.5px;border-style:solid;overflow:hidden;user-select:none;
+  transition:box-shadow .1s,filter .1s;z-index:6}
+.g-bar:hover{box-shadow:0 2px 10px rgba(0,0,0,.18);filter:brightness(1.06)}
+.g-bar.s-todo{border-style:dashed;opacity:.7}
+.bar-txt{font-size:8.5px;padding:0 5px;white-space:nowrap;overflow:hidden;pointer-events:none;font-weight:500}
+.bar-rh{position:absolute;right:0;top:0;width:7px;height:100%;
+  cursor:ew-resize;background:rgba(0,0,0,.12);opacity:0;border-radius:0 3px 3px 0}
+.g-bar:hover .bar-rh{opacity:1}
+
+/* ── Grid / milestone lines in timeline ── */
+.g-line{position:absolute;top:0;bottom:0;width:1px;background:#e8edf2;pointer-events:none;z-index:1}
+.ms-line{position:absolute;top:-40px;bottom:0;width:2px;pointer-events:none;z-index:3}
+
+/* ── Legend ── */
+#legend{display:flex;gap:14px;align-items:center;flex-wrap:wrap;padding:10px 14px;
+  background:#f8fafc;border-top:1px solid #e2e8f0;border-radius:0 0 10px 10px}
+.li{display:flex;align-items:center;gap:5px;font-size:11px;color:#64748b}
+.ls{width:20px;height:11px;border-radius:3px;border-width:1.5px;border-style:solid}
+.ls.todo{border-style:dashed}
+
+/* ── Modal ── */
+.ov{position:fixed;inset:0;background:rgba(0,0,0,.45);display:flex;align-items:center;
+  justify-content:center;z-index:500}
+.ov.hidden{display:none}
+.modal{background:#fff;border-radius:12px;padding:22px;width:460px;max-width:96vw;
+  box-shadow:0 20px 60px rgba(0,0,0,.22);max-height:90vh;overflow-y:auto}
+.modal h3{font-size:15px;font-weight:700;margin-bottom:16px;color:#1e293b}
+.fr{margin-bottom:11px}
+.fr label{display:block;font-size:10px;font-weight:700;color:#64748b;margin-bottom:3px;
+  text-transform:uppercase;letter-spacing:.3px}
+.fr input,.fr select,.fr textarea{width:100%;padding:7px 9px;border:1.5px solid #e2e8f0;border-radius:6px;
+  font-size:13px;color:#1e293b;background:#fff;outline:none;font-family:inherit}
+.fr input:focus,.fr select:focus,.fr textarea:focus{border-color:#3b82f6}
+.fr textarea{resize:vertical;min-height:66px;line-height:1.5}
+.modal-section-divider{border:none;border-top:1px solid #e2e8f0;margin:14px 0 12px}
+.fr select[multiple]{height:90px;padding:4px}
+.fr2{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.ma{display:flex;gap:7px;margin-top:18px;justify-content:flex-end}
+.bdel{background:#fee2e2;color:#dc2626;border:none;border-radius:6px;padding:6px 11px;
+  cursor:pointer;font-size:12px;font-weight:600;margin-right:auto}
+.bdel:hover{background:#fecaca}
+
+/* ── Dependency chips (modal) ── */
+.dep-chips{display:flex;flex-wrap:wrap;gap:4px;min-height:22px;padding:2px 0 4px}
+.dep-chip{display:inline-flex;align-items:center;gap:2px;background:#eff6ff;
+  border:1px solid #bfdbfe;border-radius:12px;padding:2px 6px 2px 8px;
+  font-size:10.5px;color:#1d4ed8;line-height:1.3;max-width:100%;overflow:hidden}
+.dep-chip-txt{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:260px}
+.dep-chip-rm{cursor:pointer;font-size:13px;color:#93c5fd;border:none;background:none;
+  padding:0 0 0 2px;line-height:1;flex-shrink:0}
+.dep-chip-rm:hover{color:#dc2626}
+.dep-row{display:flex;gap:6px;align-items:center;margin-top:3px}
+.dep-row select{flex:1;padding:5px 7px;border:1.5px solid #e2e8f0;border-radius:6px;
+  font-size:11.5px;color:#1e293b;background:#fff;outline:none;height:30px;min-width:0}
+.dep-row select:focus{border-color:#3b82f6}
+.dep-add-btn{padding:0 11px;background:#3b82f6;color:#fff;border:none;border-radius:6px;
+  font-size:11px;font-weight:600;cursor:pointer;white-space:nowrap;flex-shrink:0;height:30px}
+.dep-add-btn:hover{background:#2563eb}
+
+/* ── Dependency SVG overlay on #g-body ── */
+#g-body{position:relative}
+#dep-svg{position:absolute;top:0;left:0;pointer-events:none;z-index:50;overflow:visible}
+
+/* ── Animated dep line ── */
+@keyframes dash-flow{to{stroke-dashoffset:-20}}
+
+/* ── Bar hover tooltip ── */
+#bar-tooltip{position:fixed;z-index:9999;pointer-events:none;
+  background:#1e293b;color:#f1f5f9;border-radius:9px;
+  padding:9px 13px;max-width:290px;min-width:140px;
+  box-shadow:0 8px 28px rgba(0,0,0,.35),0 0 0 1px rgba(255,255,255,.08);
+  opacity:0;transition:opacity .1s ease;font-size:12px;line-height:1.5}
+#bar-tooltip.tt-visible{opacity:1}
+.tt-name{font-weight:600;font-size:12px;color:#f1f5f9;word-break:break-word;margin-bottom:2px}
+.tt-ticket{font-size:10px;color:#64748b;font-family:monospace;margin-bottom:5px;letter-spacing:.2px}
+.tt-status{font-size:11px;color:#94a3b8;display:flex;align-items:center;gap:5px;flex-wrap:wrap}
+.tt-status-val{display:flex;align-items:center;gap:4px}
+.tt-dep-icons{display:flex;align-items:center;gap:4px;margin-left:2px}
+
+/* ── Custom statuses modal ── */
+.cs-row{display:flex;align-items:center;gap:7px;padding:5px 0;border-bottom:1px solid #f0f4f8}
+.cs-row:last-child{border-bottom:none}
+.cs-swatch{width:22px;height:22px;border-radius:5px;border:1.5px solid #e2e8f0;
+  cursor:pointer;padding:0;flex-shrink:0;background:none}
+.cs-swatch::-webkit-color-swatch-wrapper{padding:0}
+.cs-swatch::-webkit-color-swatch{border:none;border-radius:3px}
+.cs-label{flex:1;font-size:12px;color:#1e293b;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.cs-del{background:none;border:none;cursor:pointer;font-size:13px;color:#94a3b8;padding:0 2px;flex-shrink:0}
+.cs-del:hover{color:#dc2626}
+.cs-add-row{display:flex;gap:7px;align-items:center;margin-top:10px;padding-top:10px;border-top:1px solid #e2e8f0}
+.cs-add-row input{flex:1;padding:6px 9px;border:1.5px solid #e2e8f0;border-radius:6px;font-size:12px;color:#1e293b;outline:none}
+.cs-add-row input:focus{border-color:#3b82f6}
+
+/* ── Quick-add dropdown ── */
+.qadd-wrap{position:relative}
+.qadd-menu{position:absolute;top:calc(100% + 6px);left:0;background:#1e293b;
+  border:1px solid #334155;border-radius:8px;box-shadow:0 6px 20px rgba(0,0,0,.35);
+  min-width:160px;z-index:300;display:none;overflow:hidden}
+.qadd-menu.open{display:block}
+.qadd-item{display:flex;align-items:center;gap:8px;padding:9px 14px;color:#cbd5e1;
+  font-size:12px;font-weight:600;cursor:pointer;border:none;background:none;
+  width:100%;text-align:left;white-space:nowrap}
+.qadd-item:hover{background:#334155;color:#fff}
+.qadd-item .qi{font-size:14px;width:18px;text-align:center;flex-shrink:0}
+
+/* ── Settings modal cards ── */
+.set-card{display:flex;align-items:center;gap:12px;padding:14px 16px;
+  border:1.5px solid #e2e8f0;border-radius:8px;cursor:pointer;
+  transition:background .15s,border-color .15s;margin-bottom:10px}
+.set-card:hover{background:#f0f7ff;border-color:#93c5fd}
+.set-card-icon{font-size:22px;flex-shrink:0}
+.set-card-body{}
+.set-card-title{font-size:13px;font-weight:700;color:#1e293b}
+.set-card-desc{font-size:11px;color:#64748b;margin-top:2px}
+
+/* ── Icon-only toolbar buttons ── */
+.btn-icon{padding:5px 8px;font-size:15px;min-width:0;line-height:1}
+
+/* ── Data location row in settings ── */
+.set-loc{display:flex;align-items:center;gap:10px;padding:12px 14px;
+  background:#f8fafc;border:1.5px solid #e2e8f0;border-radius:8px;margin-bottom:14px}
+.set-loc-icon{font-size:16px;flex-shrink:0}
+.set-loc-body{flex:1;min-width:0}
+.set-loc-label{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;
+  color:#94a3b8;margin-bottom:2px}
+.set-loc-file{font-size:12px;font-weight:600;color:#1e293b;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.set-loc-file.unset{color:#94a3b8;font-weight:400;font-style:italic}
+.set-loc-change{padding:4px 10px;font-size:11px;font-weight:600;border:none;
+  border-radius:5px;cursor:pointer;background:#e2e8f0;color:#475569;white-space:nowrap;flex-shrink:0}
+.set-loc-change:hover{background:#cbd5e1;color:#1e293b}
+
+/* ── Settings toggle rows ── */
+.set-toggle-row{display:flex;align-items:center;gap:12px;padding:11px 14px;
+  background:#f8fafc;border:1.5px solid #e2e8f0;border-radius:8px;margin-bottom:10px;
+  cursor:pointer;transition:background .14s,border-color .14s;user-select:none}
+.set-toggle-row:hover{background:#f0f7ff;border-color:#93c5fd}
+.set-toggle-icon{font-size:16px;flex-shrink:0;width:26px;text-align:center}
+.set-toggle-body{flex:1}
+.set-toggle-title{font-size:12px;font-weight:700;color:#1e293b}
+.set-toggle-desc{font-size:11px;color:#64748b;margin-top:1px}
+.tog{position:relative;width:34px;height:19px;flex-shrink:0}
+.tog input{opacity:0;width:0;height:0;position:absolute}
+.tog-track{position:absolute;inset:0;background:#cbd5e1;border-radius:19px;transition:background .2s}
+.tog-thumb{position:absolute;top:3px;left:3px;width:13px;height:13px;
+  background:#fff;border-radius:50%;transition:transform .2s;box-shadow:0 1px 3px rgba(0,0,0,.2)}
+.tog input:checked+.tog-track{background:#3b82f6}
+.tog input:checked~.tog-thumb{transform:translateX(15px)}
+
+/* ── Welcome modal ── */
+#welcome-ov .modal{width:420px;padding:32px 32px 24px;text-align:center}
+.wlc-logo{font-size:36px;margin-bottom:10px}
+.wlc-title{font-size:20px;font-weight:800;color:#1e293b;margin-bottom:6px}
+.wlc-sub{font-size:13px;color:#64748b;margin-bottom:26px;line-height:1.5}
+.wlc-btn{display:flex;align-items:center;gap:13px;padding:14px 18px;
+  border:1.5px solid #e2e8f0;border-radius:10px;cursor:pointer;
+  background:#fff;width:100%;text-align:left;margin-bottom:10px;
+  transition:background .14s,border-color .14s,box-shadow .14s}
+.wlc-btn:hover:not(:disabled){background:#f0f7ff;border-color:#93c5fd;
+  box-shadow:0 2px 8px rgba(59,130,246,.12)}
+.wlc-btn:disabled{opacity:.45;cursor:not-allowed;background:#f8fafc}
+.wlc-btn-icon{font-size:22px;flex-shrink:0;width:32px;text-align:center}
+.wlc-btn-body{flex:1}
+.wlc-btn-title{font-size:13px;font-weight:700;color:#1e293b}
+.wlc-btn-desc{font-size:11px;color:#64748b;margin-top:2px;line-height:1.4}
+.wlc-soon{display:inline-block;font-size:9px;font-weight:700;letter-spacing:.4px;
+  background:#f1f5f9;color:#94a3b8;border:1px solid #e2e8f0;
+  border-radius:4px;padding:1px 5px;margin-left:6px;vertical-align:middle;text-transform:uppercase}
+.wlc-skip{font-size:11px;color:#94a3b8;cursor:pointer;background:none;border:none;
+  margin-top:6px;display:block;width:100%;text-align:center;padding:4px}
+.wlc-skip:hover{color:#475569}
+
+/* ── Tutorial modal ── */
+#tutorial-ov .modal{width:520px;max-height:82vh;overflow-y:auto;padding-bottom:20px}
+#tutorial-ov h3{margin-bottom:4px}
+.tut-intro{font-size:12px;color:#64748b;margin-bottom:18px;line-height:1.5}
+.tut-section{margin-bottom:6px}
+.tut-feature{display:flex;align-items:flex-start;gap:10px;padding:10px 12px;
+  border-radius:8px;margin-bottom:4px;background:#f8fafc;border:1px solid #f1f5f9}
+.tut-icon{font-size:18px;flex-shrink:0;width:26px;text-align:center;margin-top:1px}
+.tut-body{}
+.tut-feat-title{font-size:12px;font-weight:700;color:#1e293b}
+.tut-feat-desc{font-size:11px;color:#64748b;margin-top:2px;line-height:1.45}
+.tut-feat-desc kbd{background:#e2e8f0;border-radius:3px;padding:1px 4px;
+  font-size:10px;font-family:monospace;color:#475569}
+.tut-divider{font-size:10px;font-weight:700;text-transform:uppercase;
+  letter-spacing:.6px;color:#94a3b8;margin:14px 0 6px;padding-left:2px}
+</style>
+</head>
+<body>
+
+<!-- ── Toolbar ── -->
+<div id="toolbar">
+  <span id="chart-title" contenteditable="true">Modernized SSP — Epic-Level Gantt</span>
+  <div class="sep"></div>
+  <!-- Quick-add dropdown -->
+  <div class="qadd-wrap" id="qadd-wrap">
+    <button class="btn bp" id="qadd-btn" onclick="toggleQAdd(event)" title="Add new item">＋</button>
+    <div class="qadd-menu" id="qadd-menu">
+      <button class="qadd-item" onclick="qaddAction(openTaskModal)"><span class="qi">📋</span>New Task</button>
+      <button class="qadd-item" onclick="qaddAction(openGroupModal)"><span class="qi">📁</span>New Group</button>
+      <button class="qadd-item" onclick="qaddAction(openMilestoneModal)"><span class="qi">◆</span>New Milestone</button>
+      <button class="qadd-item" onclick="qaddAction(newGantt)"><span class="qi">⊕</span>New Gantt</button>
+    </div>
+  </div>
+  <!-- Settings gear -->
+  <button class="btn bs btn-icon" onclick="openSettingsModal()" title="Settings">⚙</button>
+  <div class="sep"></div>
+  <button class="btn bs" id="btn-hideDone" onclick="toggleFilter('hideDone')">✓ Hide Done</button>
+  <button class="btn bs" id="btn-onlyRisk" onclick="toggleFilter('onlyRisk')">⚠ At-Risk Only</button>
+  <div class="sep"></div>
+  <select id="sort-sel" onchange="setSort(this.value)" title="Sort tasks within groups">
+    <option value="none">↕ Default Order</option>
+    <option value="alpha">A↓Z  Alphabetical</option>
+    <option value="length">⟷  Task Length</option>
+    <option value="status">●  By Status</option>
+  </select>
+  <div class="sep"></div>
+  <div class="btn-dep-wrap">
+    <button class="btn bs" id="btn-showDeps" onclick="toggleDeps()" title="Show dependency lines">🔗 Deps</button>
+    <button class="sub-btn" id="btn-depsOnly" onclick="toggleDepsOnly()" title="Show only tasks with dependencies">◉ Only</button>
+  </div>
+  <div class="sep"></div>
+  <button class="btn bg btn-icon" onclick="saveJSON()" title="Save Gantt Data">💾</button>
+  <button class="btn bs btn-icon" onclick="openJSONFile()" title="Load Gantt Data">📂</button>
+  <input id="file-input" type="file" accept=".json" style="display:none" onchange="loadJSONFallback(event)">
+  <span id="save-status" style="font-size:11px;color:#4ade80;opacity:0;transition:opacity .6s;white-space:nowrap"></span>
+</div>
+
+<!-- ── Gantt ── -->
+<div id="page"><div id="gantt">
+  <div id="g-head">
+    <div class="lbl-col" id="lbl-col-hdr">Task / Epic<button class="pin-col-btn" id="pin-col-btn" onclick="toggleColPin()" title="Pin column">📌</button><div class="col-resize-hdl" id="col-resize-hdl" onmousedown="onColResizeDown(event)"></div></div>
+    <div id="month-wrap"></div>
+  </div>
+  <div id="g-body"></div>
+  <div id="legend">
+    <strong style="font-size:11px;color:#374151">Status:</strong>
+    <div class="li"><div class="ls" style="background:#e5e7eb;border-color:#9ca3af"></div>Done ✓</div>
+    <div class="li"><div class="ls" style="background:#dbeafe;border-color:#1d4ed8"></div>In Progress</div>
+    <div class="li"><div class="ls todo" style="background:#f8fafc;border-color:#1d4ed8"></div>Planned</div>
+    <div class="li"><div class="ls" style="background:#fee2e2;border-color:#dc2626"></div>⚠ Risk / Blocked</div>
+    <div class="li"><div class="ls" style="background:#fef3c7;border-color:#d97706"></div>Custom color</div>
+    <span id="legend-custom"></span>
+    <div class="li" style="margin-left:6px"><span style="color:#dc2626;font-size:11px">⬦</span>&nbsp;Has deps</div>
+    <span style="margin-left:6px;font-size:11px;color:#94a3b8">| Drag bars to move · drag right edge to resize · click bar/label to edit · ⠿ drag to reorder</span>
+  </div>
+</div></div>
+
+<!-- ── Task modal ── -->
+<div class="ov hidden" id="task-ov">
+<div class="modal">
+  <h3 id="task-modal-title">Edit Task</h3>
+  <input type="hidden" id="t-id">
+  <div class="fr"><label>Task name</label><input id="t-name" type="text" placeholder="Epic description…"></div>
+  <div class="fr">
+    <label>Group(s) <small style="text-transform:none;letter-spacing:0;font-weight:400">(Ctrl/Cmd+click for multiple)</small></label>
+    <select id="t-group" multiple></select>
+  </div>
+  <div class="fr2">
+    <div class="fr"><label>Start month</label><select id="t-start"></select></div>
+    <div class="fr"><label>End month</label><select id="t-end"></select></div>
+  </div>
+  <div class="fr"><label>Status</label>
+    <select id="t-status"><!-- populated by populateStatusSel() --></select>
+  </div>
+  <div class="fr" id="t-color-row" style="display:none">
+    <label>Custom color</label>
+    <input id="t-color" type="color" value="#6366f1" style="height:36px;cursor:pointer">
+  </div>
+  <div class="fr"><label>Ticket / ID <small style="text-transform:none;letter-spacing:0">(optional)</small></label>
+    <input id="t-ticket" type="text" placeholder="e.g. RNS-4, SB-19…"></div>
+
+  <hr class="modal-section-divider">
+  <div class="fr"><label>More Info <small style="text-transform:none;letter-spacing:0;font-weight:400">(context, links, notes…)</small></label>
+    <textarea id="t-moreinfo" placeholder="Add any background info, links, or context…"></textarea></div>
+  <div class="fr"><label>Comments</label>
+    <textarea id="t-comments" placeholder="Leave a comment or note for the team…"></textarea></div>
+  <hr class="modal-section-divider">
+
+  <!-- Blocks -->
+  <div class="fr">
+    <label>Blocks <small style="text-transform:none;letter-spacing:0;font-weight:400">(this task blocks…)</small></label>
+    <div class="dep-chips" id="dep-chips-blocks"></div>
+    <div class="dep-row">
+      <select id="dep-group-blocks" onchange="populateDepTaskSel('dep-task-blocks','dep-group-blocks','blocks')">
+        <option value="">— Group —</option>
+      </select>
+      <select id="dep-task-blocks"><option value="">— Task —</option></select>
+      <button class="dep-add-btn" onclick="addDepLink('blocks')">＋ Add</button>
+    </div>
+  </div>
+
+  <!-- Blocked By -->
+  <div class="fr">
+    <label>Blocked By <small style="text-transform:none;letter-spacing:0;font-weight:400">(blocked by…)</small></label>
+    <div class="dep-chips" id="dep-chips-blockedBy"></div>
+    <div class="dep-row">
+      <select id="dep-group-blockedBy" onchange="populateDepTaskSel('dep-task-blockedBy','dep-group-blockedBy','blockedBy')">
+        <option value="">— Group —</option>
+      </select>
+      <select id="dep-task-blockedBy"><option value="">— Task —</option></select>
+      <button class="dep-add-btn" onclick="addDepLink('blockedBy')">＋ Add</button>
+    </div>
+  </div>
+
+  <div class="ma">
+    <button class="bdel" id="t-del-btn" onclick="deleteTask()">🗑 Delete</button>
+    <button class="btn bs" onclick="closeModal('task-ov')">Cancel</button>
+    <button class="btn bp" onclick="saveTask()">Save</button>
+  </div>
+</div></div>
+
+<!-- ── Group modal ── -->
+<div class="ov hidden" id="grp-ov">
+<div class="modal">
+  <h3>Add Group</h3>
+  <div class="fr"><label>Group name</label><input id="g-name" type="text" placeholder="e.g. 🔒 Security"></div>
+  <div class="fr"><label>Color</label><input id="g-color" type="color" value="#6366f1" style="height:36px;cursor:pointer"></div>
+  <div class="ma">
+    <button class="btn bs" onclick="closeModal('grp-ov')">Cancel</button>
+    <button class="btn bp" onclick="saveGroup()">Add Group</button>
+  </div>
+</div></div>
+
+<!-- ── Milestone modal ── -->
+<div class="ov hidden" id="ms-ov">
+<div class="modal">
+  <h3 id="ms-title">Add Milestone</h3>
+  <input type="hidden" id="ms-id">
+  <div class="fr"><label>Label</label><input id="ms-label" type="text" placeholder="e.g. ★ M1"></div>
+  <div class="fr"><label>Sub-label</label><input id="ms-sub" type="text" placeholder="e.g. Jun 1, 2026"></div>
+  <div class="fr2">
+    <div class="fr"><label>Month position</label><select id="ms-month"></select></div>
+    <div class="fr"><label>Color</label><input id="ms-color" type="color" value="#ef4444" style="height:36px;cursor:pointer"></div>
+  </div>
+  <div class="ma">
+    <button class="bdel" id="ms-del-btn" onclick="deleteMilestone()">🗑 Delete</button>
+    <button class="btn bs" onclick="closeModal('ms-ov')">Cancel</button>
+    <button class="btn bp" onclick="saveMilestone()">Save</button>
+  </div>
+</div></div>
+
+<!-- ── Custom statuses modal ── -->
+<div class="ov hidden" id="status-ov">
+<div class="modal" style="width:360px">
+  <h3>Custom Statuses</h3>
+  <p style="font-size:11px;color:#64748b;margin-bottom:12px">Add statuses beyond the built-in ones. Each gets its own color and appears in the task dropdown.</p>
+  <div id="cs-list"></div>
+  <div class="cs-add-row">
+    <input type="color" id="cs-new-color" value="#8b5cf6" style="width:36px;height:30px;cursor:pointer;border:1.5px solid #e2e8f0;border-radius:6px;padding:2px;flex-shrink:0">
+    <input id="cs-new-label" type="text" placeholder="Status name…" onkeydown="if(event.key==='Enter')addCustomStatus()">
+    <button class="dep-add-btn" onclick="addCustomStatus()">＋ Add</button>
+  </div>
+  <div class="ma" style="margin-top:14px">
+    <button class="btn bs" onclick="closeModal('status-ov')">Close</button>
+  </div>
+</div></div>
+
+<!-- ── Month editor modal ── -->
+<div class="ov hidden" id="month-ov">
+<div class="modal" style="width:360px">
+  <h3>Edit Month Columns</h3>
+  <div id="month-list" style="margin-bottom:14px"></div>
+  <button class="btn bp" onclick="addMonth()" style="width:100%;justify-content:center;padding:8px">＋ Add Column</button>
+  <div class="ma" style="margin-top:14px">
+    <button class="btn bs" onclick="closeModal('month-ov')">Cancel</button>
+    <button class="btn bp" onclick="saveMonths()">Save</button>
+  </div>
+</div></div>
+
+<!-- ── Welcome modal ── -->
+<div class="ov hidden" id="welcome-ov">
+<div class="modal" id="welcome-modal">
+  <div class="wlc-logo">📊</div>
+  <div class="wlc-title">Welcome to Gantt Editor</div>
+  <div class="wlc-sub">A powerful, offline-first Gantt tool. No account needed.<br>Get started by picking an option below.</div>
+
+  <button class="wlc-btn" onclick="closeModal('welcome-ov');openTutorialModal()">
+    <div class="wlc-btn-icon">📚</div>
+    <div class="wlc-btn-body">
+      <div class="wlc-btn-title">Quick Tutorial</div>
+      <div class="wlc-btn-desc">Learn the key features — bars, groups, dependencies, and more</div>
+    </div>
+  </button>
+
+  <button class="wlc-btn" onclick="closeModal('welcome-ov');saveJSON()">
+    <div class="wlc-btn-icon">💾</div>
+    <div class="wlc-btn-body">
+      <div class="wlc-btn-title">Choose Gantt Data Location</div>
+      <div class="wlc-btn-desc">Pick a file on your computer for automatic saving as you work</div>
+    </div>
+  </button>
+
+  <button class="wlc-btn" disabled>
+    <div class="wlc-btn-icon">☁️</div>
+    <div class="wlc-btn-body">
+      <div class="wlc-btn-title">Work on Cloud <span class="wlc-soon">Coming Soon</span></div>
+      <div class="wlc-btn-desc">Collaborate with teammates or access your Gantt from any device</div>
+    </div>
+  </button>
+
+  <button class="wlc-skip" onclick="closeModal('welcome-ov')">Skip for now</button>
+</div></div>
+
+<!-- ── Tutorial modal ── -->
+<div class="ov hidden" id="tutorial-ov">
+<div class="modal" id="tutorial-modal">
+  <h3>📚 Quick Tutorial</h3>
+  <p class="tut-intro">Everything you need to know to get productive fast. All changes auto-save to your chosen file.</p>
+
+  <div class="tut-divider">Editing Tasks</div>
+  <div class="tut-feature">
+    <div class="tut-icon">🖱️</div>
+    <div class="tut-body">
+      <div class="tut-feat-title">Drag to move &amp; resize</div>
+      <div class="tut-feat-desc">Drag any bar left/right to move it. Drag the <strong>right edge</strong> to extend or shorten the duration.</div>
+    </div>
+  </div>
+  <div class="tut-feature">
+    <div class="tut-icon">✏️</div>
+    <div class="tut-body">
+      <div class="tut-feat-title">Click to edit</div>
+      <div class="tut-feat-desc">Click any bar or task label to open the edit modal — rename, change status, set ticket IDs, and link dependencies.</div>
+    </div>
+  </div>
+  <div class="tut-feature">
+    <div class="tut-icon">⠿</div>
+    <div class="tut-body">
+      <div class="tut-feat-title">Reorder tasks</div>
+      <div class="tut-feat-desc">Drag the <kbd>⠿</kbd> handle in the label column to drag tasks up or down within a group.</div>
+    </div>
+  </div>
+
+  <div class="tut-divider">Adding Content</div>
+  <div class="tut-feature">
+    <div class="tut-icon">＋</div>
+    <div class="tut-body">
+      <div class="tut-feat-title">Quick-add menu</div>
+      <div class="tut-feat-desc">Click the <kbd>＋</kbd> button in the toolbar to add a new Task, Group, Milestone, or start a fresh Gantt.</div>
+    </div>
+  </div>
+  <div class="tut-feature">
+    <div class="tut-icon">📋</div>
+    <div class="tut-body">
+      <div class="tut-feat-title">Groups &amp; tasks</div>
+      <div class="tut-feat-desc">Tasks belong to one or more groups (swimlanes). Use the <strong>+ Add Task</strong> button inside each group row for quick inline adds.</div>
+    </div>
+  </div>
+  <div class="tut-feature">
+    <div class="tut-icon">◆</div>
+    <div class="tut-body">
+      <div class="tut-feat-title">Milestones</div>
+      <div class="tut-feat-desc">Milestones appear as vertical colored lines across the chart — great for marking key dates or launch targets.</div>
+    </div>
+  </div>
+
+  <div class="tut-divider">Dependencies</div>
+  <div class="tut-feature">
+    <div class="tut-icon">🔗</div>
+    <div class="tut-body">
+      <div class="tut-feat-title">Blocks / Blocked By</div>
+      <div class="tut-feat-desc">In the task edit modal, link tasks that block each other. Dependencies are always kept in sync bidirectionally.</div>
+    </div>
+  </div>
+  <div class="tut-feature">
+    <div class="tut-icon">👁️</div>
+    <div class="tut-body">
+      <div class="tut-feat-title">Dependency view</div>
+      <div class="tut-feat-desc">Click <kbd>🔗 Deps</kbd> in the toolbar to draw animated lines between dependent tasks. <strong>Red</strong> = active blocker, <strong>green</strong> = blocker is done. Use <kbd>◉ Only</kbd> to focus only on tasks with deps.</div>
+    </div>
+  </div>
+
+  <div class="tut-divider">Views &amp; Filters</div>
+  <div class="tut-feature">
+    <div class="tut-icon">↕️</div>
+    <div class="tut-body">
+      <div class="tut-feat-title">Sort &amp; filter</div>
+      <div class="tut-feat-desc">Use the <strong>sort dropdown</strong> to order tasks by name, length, or status. Toggle <kbd>✓ Hide Done</kbd> or <kbd>⚠ At-Risk Only</kbd> to focus your view.</div>
+    </div>
+  </div>
+  <div class="tut-feature">
+    <div class="tut-icon">📌</div>
+    <div class="tut-body">
+      <div class="tut-feat-title">Pin label column</div>
+      <div class="tut-feat-desc">Click the 📌 pin icon in the header to freeze the task label column while scrolling horizontally.</div>
+    </div>
+  </div>
+
+  <div class="tut-divider">Settings &amp; Saving</div>
+  <div class="tut-feature">
+    <div class="tut-icon">⚙️</div>
+    <div class="tut-body">
+      <div class="tut-feat-title">Settings</div>
+      <div class="tut-feat-desc">Click the <kbd>⚙</kbd> gear icon to edit month columns (add, rename, reorder) or manage custom task statuses with custom colors.</div>
+    </div>
+  </div>
+  <div class="tut-feature">
+    <div class="tut-icon">💾</div>
+    <div class="tut-body">
+      <div class="tut-feat-title">Auto-save</div>
+      <div class="tut-feat-desc">Every change is auto-saved to your browser and to a local file (if you picked one). Use <kbd>💾</kbd> to choose or update the file location, and <kbd>📂</kbd> to load a previously saved file.</div>
+    </div>
+  </div>
+
+  <div class="ma" style="margin-top:18px">
+    <button class="btn bp" onclick="closeModal('tutorial-ov')" style="padding:8px 24px">Got it — let's go! 🚀</button>
+  </div>
+</div></div>
+
+<!-- ── Settings modal ── -->
+<div class="ov hidden" id="settings-ov">
+<div class="modal" style="width:380px">
+  <h3>⚙ Settings</h3>
+
+  <!-- Data location -->
+  <div class="set-loc">
+    <div class="set-loc-icon">💾</div>
+    <div class="set-loc-body">
+      <div class="set-loc-label">Gantt Data Location</div>
+      <div class="set-loc-file unset" id="set-loc-file">Not linked — browser storage only</div>
+    </div>
+    <button class="set-loc-change" onclick="closeModal('settings-ov');saveJSON().then(()=>refreshFileLocationDisplay())">Change…</button>
+  </div>
+
+  <!-- Feature flags -->
+  <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:#94a3b8;margin:4px 0 8px 2px">Feature Flags</div>
+  <div class="set-toggle-row" onclick="document.getElementById('flag-tooltipEnabled').click()">
+    <div class="set-toggle-icon">💬</div>
+    <div class="set-toggle-body">
+      <div class="set-toggle-title">Task hover tooltip</div>
+      <div class="set-toggle-desc">Show a tooltip when hovering over a task bar</div>
+    </div>
+    <div class="tog">
+      <input type="checkbox" id="flag-tooltipEnabled"
+        onclick="event.stopPropagation()"
+        onchange="setFeatureFlag('tooltipEnabled', this.checked)">
+      <div class="tog-track"></div>
+      <div class="tog-thumb"></div>
+    </div>
+  </div>
+
+  <div class="set-card" onclick="closeModal('settings-ov');openMonthModal()">
+    <div class="set-card-icon">📅</div>
+    <div class="set-card-body">
+      <div class="set-card-title">Edit Month Columns</div>
+      <div class="set-card-desc">Add, rename, or reorder timeline columns</div>
+    </div>
+  </div>
+  <div class="set-card" onclick="closeModal('settings-ov');openStatusModal()">
+    <div class="set-card-icon">🎨</div>
+    <div class="set-card-body">
+      <div class="set-card-title">Edit Custom Statuses</div>
+      <div class="set-card-desc">Create custom task statuses with colors</div>
+    </div>
+  </div>
+  <div class="ma" style="margin-top:6px">
+    <button class="btn bs" onclick="closeModal('settings-ov')">Close</button>
+  </div>
+</div></div>
+
+<script>
+// ═══════════════════════════════════════════════════════════════════
+//  STATE
+// ═══════════════════════════════════════════════════════════════════
+const COL_W = 120;  // px per month column
+let lblW = 220;      // px label column — user-adjustable
+
+// Data model v2: s = left edge in month-units (0=Jan start, 0.5=Jan mid, 1=Feb start…)
+//                e = right edge in month-units (1=Jan end, 1.5=Feb mid, 2=Feb end…)
+// Dep model: task.blocks=[taskId,…], task.blockedBy=[taskId,…] — always synced bidirectionally
+let state = {
+  ver: 2,
+  title: "Modernized SSP — Epic-Level Gantt",
+  months: [
+    {label:"Jan"},{label:"Feb"},{label:"Mar"},{label:"Apr"},{label:"May"},
+    {label:"Jun"},{label:"Jul"},{label:"Aug"},{label:"Sep"}
+  ],
+  milestones: [
+    {id:"ms1", month:5, label:"★  M1",    sub:"Jun 1, 2026",  color:"#ef4444"},
+    {id:"ms2", month:8, label:"★  M1.5",  sub:"Sep 1, 2026",  color:"#7c3aed"}
+  ],
+  customStatuses: [],
+  tooltipEnabled: true,
+  groups: [
+    {id:"be",     label:"⚡ Backend",      color:"#1d4ed8", light:"#dbeafe"},
+    {id:"algo",   label:"🤖 Algo",         color:"#b45309", light:"#fef3c7"},
+    {id:"data",   label:"🗄️  Data",        color:"#065f46", light:"#d1fae5"},
+    {id:"portal", label:"🎨 Portal / FE",  color:"#9d174d", light:"#fce7f3"},
+    {id:"devops", label:"🔧 DevOps",       color:"#5b21b6", light:"#ede9fe"},
+    {id:"qa",     label:"🧪 QA",           color:"#1e3a5f", light:"#dbeafe"},
+    {id:"pm",     label:"📋 Product (PM)", color:"#0e7490", light:"#cffafe"}
+  ],
+  tasks: [
+    {id:"be1",  g:"be",     gs:["be"],     label:"Core E2E oRTB — Banner & Native ✓",     s:0,   e:2,  st:"done",  tk:"RNS-8",      blocks:[],blockedBy:[]},
+    {id:"be2",  g:"be",     gs:["be"],     label:"oRTB Video + SPO basic flow",            s:2,   e:4,  st:"wip",   tk:"RNS-8",      blocks:[],blockedBy:[]},
+    {id:"be3",  g:"be",     gs:["be"],     label:"IVT / Enrichments / Writing events",     s:2,   e:5,  st:"wip",   tk:"SB/RNS",     blocks:[],blockedBy:[]},
+    {id:"be4",  g:"be",     gs:["be"],     label:"Schain / MaxMind / Display resp (SB)",   s:2,   e:4,  st:"wip",   tk:"SB-19/45/51",blocks:[],blockedBy:[]},
+    {id:"be5",  g:"be",     gs:["be"],     label:"Algo API stubs — 4 APIs (RNS-13)",       s:2,   e:5,  st:"todo",  tk:"RNS-13",     blocks:[],blockedBy:[]},
+    {id:"be6",  g:"be",     gs:["be"],     label:"Rules Engine BE (RNS-4)",                s:3,   e:6,  st:"risk",  tk:"RNS-4",      blocks:[],blockedBy:[]},
+    {id:"be7",  g:"be",     gs:["be"],     label:"Demand Config + Publisher mgmt",         s:3,   e:5,  st:"todo",  tk:"RNS-5/10",   blocks:[],blockedBy:[]},
+    {id:"be8",  g:"be",     gs:["be"],     label:"Bidder connectivity (RNS-2)",            s:3,   e:5,  st:"todo",  tk:"RNS-2",      blocks:[],blockedBy:[]},
+    {id:"be9",  g:"be",     gs:["be"],     label:"Audience as Service (RNS-107)",          s:4,   e:6,  st:"risk",  tk:"RNS-107",    blocks:[],blockedBy:[]},
+    {id:"be10", g:"be",     gs:["be"],     label:"Deals / PMP (RNS-139)",                  s:4,   e:7,  st:"todo",  tk:"RNS-139",    blocks:[],blockedBy:[]},
+    {id:"be11", g:"be",     gs:["be"],     label:"S2S Adapter (RNS-146)",                  s:5,   e:8,  st:"todo",  tk:"RNS-146",    blocks:[],blockedBy:[]},
+    {id:"al1",  g:"algo",   gs:["algo"],   label:"4 Algo API Specs signed off ✓",          s:0,   e:2,  st:"done",  tk:"RNS-13",     blocks:[],blockedBy:[]},
+    {id:"al2",  g:"algo",   gs:["algo"],   label:"Protobuf / stub perf testing",           s:2,   e:3,  st:"wip",   tk:"AO",         blocks:[],blockedBy:[]},
+    {id:"al3",  g:"algo",   gs:["algo"],   label:"Algo data readiness (AO-4575)",          s:3,   e:5,  st:"risk",  tk:"AO-4575",    blocks:[],blockedBy:[]},
+    {id:"al4",  g:"algo",   gs:["algo"],   label:"Algo serving integration (RNS-1)",       s:4,   e:6,  st:"todo",  tk:"RNS-1",      blocks:[],blockedBy:[]},
+    {id:"al5",  g:"algo",   gs:["algo"],   label:"Model improvements (M1.5)",              s:5,   e:9,  st:"todo",  tk:"AO",         blocks:[],blockedBy:[]},
+    {id:"da1",  g:"data",   gs:["data"],   label:"SSP data schema design (BD-10035)",      s:2,   e:4,  st:"wip",   tk:"BD-10035",   blocks:[],blockedBy:[]},
+    {id:"da2",  g:"data",   gs:["data"],   label:"Algo Patch ETLs — SST / BFS",           s:2,   e:4,  st:"wip",   tk:"SDP-4784/5", blocks:[],blockedBy:[]},
+    {id:"da3",  g:"data",   gs:["data"],   label:"Event producer flows x4 (SDP)",          s:3,   e:6,  st:"todo",  tk:"SDP-4786-9", blocks:[],blockedBy:[]},
+    {id:"da4",  g:"data",   gs:["data"],   label:"DWH tables — sspAGG / Win-Lose",        s:3,   e:5,  st:"wip",   tk:"BD-10111/17",blocks:[],blockedBy:[]},
+    {id:"da5",  g:"data",   gs:["data"],   label:"P2 data architecture",                   s:5,   e:9,  st:"todo",  tk:"RNS-6",      blocks:[],blockedBy:[]},
+    {id:"po1",  g:"portal", gs:["portal"], label:"Supply & Demand wireframes ✓",           s:0,   e:2,  st:"done",  tk:"RNS-156",    blocks:[],blockedBy:[]},
+    {id:"po2",  g:"portal", gs:["portal"], label:"Rules Engine + Dashboard wireframes",    s:2,   e:4,  st:"wip",   tk:"RNS-156",    blocks:[],blockedBy:[]},
+    {id:"po3",  g:"portal", gs:["portal"], label:"Templates adaptation (Matan)",           s:3,   e:5,  st:"todo",  tk:"RNS-156",    blocks:[],blockedBy:[]},
+    {id:"po4",  g:"portal", gs:["portal"], label:"Supply & Demand screens (Ilia M.)",      s:4,   e:7,  st:"todo",  tk:"RNS-10/5",   blocks:[],blockedBy:[]},
+    {id:"po5",  g:"portal", gs:["portal"], label:"Rules Engine UI (RNS-4.5)",              s:4,   e:8,  st:"risk",  tk:"RNS-4.5",    blocks:[],blockedBy:[]},
+    {id:"po6",  g:"portal", gs:["portal"], label:"Dashboard + Admin UI",                   s:6,   e:9,  st:"todo",  tk:"RNS-7",      blocks:[],blockedBy:[]},
+    {id:"dv1",  g:"devops", gs:["devops"], label:"K8s cluster + CI/CD pipeline ✓",         s:0,   e:2,  st:"done",  tk:"OPS-8911",   blocks:[],blockedBy:[]},
+    {id:"dv2",  g:"devops", gs:["devops"], label:"Istio Ambient Mesh (OPS-8939)",          s:2,   e:4,  st:"risk",  tk:"OPS-8939",   blocks:[],blockedBy:[]},
+    {id:"dv3",  g:"devops", gs:["devops"], label:"SigNoz + Staging env",                   s:2,   e:4,  st:"wip",   tk:"OPS-8938/42",blocks:[],blockedBy:[]},
+    {id:"dv4",  g:"devops", gs:["devops"], label:"Vault + Load testing env",               s:3,   e:5,  st:"todo",  tk:"OPS-8945/9", blocks:[],blockedBy:[]},
+    {id:"dv5",  g:"devops", gs:["devops"], label:"Production cluster ready",               s:4,   e:6,  st:"todo",  tk:"OPS-8950",   blocks:[],blockedBy:[]},
+    {id:"dv6",  g:"devops", gs:["devops"], label:"Monitoring & alerting (RNS-56)",         s:4,   e:7,  st:"todo",  tk:"RNS-56",     blocks:[],blockedBy:[]},
+    {id:"dv7",  g:"devops", gs:["devops"], label:"Scale & optimization (M1.5)",            s:6,   e:9,  st:"todo",  tk:"OPS",        blocks:[],blockedBy:[]},
+    {id:"qa1",  g:"qa",     gs:["qa"],     label:"QA framework setup",                     s:2,   e:3,  st:"wip",   tk:"RNS-32",     blocks:[],blockedBy:[]},
+    {id:"qa2",  g:"qa",     gs:["qa"],     label:"Manual QA onboarding (Mar 16)",          s:2,   e:3,  st:"wip",   tk:"RNS-32",     blocks:[],blockedBy:[]},
+    {id:"qa3",  g:"qa",     gs:["qa"],     label:"RTB + core flow test cases",             s:3,   e:5,  st:"todo",  tk:"RNS-32",     blocks:[],blockedBy:[]},
+    {id:"qa4",  g:"qa",     gs:["qa"],     label:"Algo API test cases",                    s:4,   e:6,  st:"todo",  tk:"RNS-32",     blocks:[],blockedBy:[]},
+    {id:"qa5",  g:"qa",     gs:["qa"],     label:"Full E2E regression suite",              s:5,   e:8,  st:"todo",  tk:"RNS-32",     blocks:[],blockedBy:[]},
+    {id:"qa6",  g:"qa",     gs:["qa"],     label:"M1 sign-off → M1.5 regression",         s:5,   e:9,  st:"todo",  tk:"RNS-32",     blocks:[],blockedBy:[]},
+    {id:"pm1",  g:"pm",     gs:["pm"],     label:"Workshop — Mar 23-24",                   s:2,   e:3,  st:"wip",   tk:"",           blocks:[],blockedBy:[]},
+    {id:"pm2",  g:"pm",     gs:["pm"],     label:"Target Rules spec  ⚠",                   s:2,   e:4,  st:"risk",  tk:"RNS-4",      blocks:[],blockedBy:[]},
+    {id:"pm3",  g:"pm",     gs:["pm"],     label:"Privacy + User Profile specs  ⚠",       s:2,   e:4,  st:"risk",  tk:"RNS-60",     blocks:[],blockedBy:[]},
+    {id:"pm4",  g:"pm",     gs:["pm"],     label:"Custom Integration + Configs spec",      s:3,   e:4,  st:"todo",  tk:"RNS-5",      blocks:[],blockedBy:[]},
+    {id:"pm5",  g:"pm",     gs:["pm"],     label:"M1 product coverage — epic closure",     s:3,   e:5,  st:"todo",  tk:"RNS-90",     blocks:[],blockedBy:[]}
+  ]
+};
+
+// Load from localStorage if available; migrate older saves to v2 model
+let _isFirstLoad = false;
+try {
+  const saved = localStorage.getItem('ssp-gantt-state');
+  if (saved) {
+    const loaded = JSON.parse(saved);
+    if (!loaded.ver || loaded.ver < 2) {
+      if (loaded.tasks) loaded.tasks.forEach(t => { t.e = Math.round(t.e) + 1; });
+      loaded.ver = 2;
+    }
+    state = loaded;
+  } else {
+    _isFirstLoad = true;
+  }
+} catch(e) { _isFirstLoad = true; }
+
+// Normalize gs / dep arrays and customStatuses on every load (backward compat)
+if (!state.customStatuses) state.customStatuses = [];
+if (state.tooltipEnabled === undefined) state.tooltipEnabled = true;
+state.tasks.forEach(t => {
+  if (!t.gs)        t.gs        = t.g ? [t.g] : [];
+  if (!t.blocks)    t.blocks    = [];
+  if (!t.blockedBy) t.blockedBy = [];
+});
+if (state.lblW) lblW = state.lblW;
+if (state.colPinned) {
+  document.getElementById('gantt').classList.add('col-pinned');
+  document.getElementById('pin-col-btn').classList.add('active');
+}
+
+function save() {
+  state.lblW = lblW;
+  state.colPinned = document.getElementById('gantt').classList.contains('col-pinned');
+  try { localStorage.setItem('ssp-gantt-state', JSON.stringify(state)); } catch(e){}
+  autoSaveToFile();
+}
+
+// UI filter/sort state (not persisted)
+let ui = { hideDone: false, onlyRisk: false, showDeps: false, depsOnly: false };
+let sortMode = 'none';
+
+function toggleFilter(f) {
+  ui[f] = !ui[f];
+  document.getElementById('btn-' + f).classList.toggle('active', ui[f]);
+  render();
+}
+
+function setSort(v) {
+  sortMode = v;
+  render();
+}
+
+function toggleDeps() {
+  ui.showDeps = !ui.showDeps;
+  document.getElementById('btn-showDeps').classList.toggle('active', ui.showDeps);
+  if (!ui.showDeps && ui.depsOnly) {
+    ui.depsOnly = false;
+    document.getElementById('btn-depsOnly').classList.remove('active');
+  }
+  render();
+}
+
+function toggleDepsOnly() {
+  ui.depsOnly = !ui.depsOnly;
+  document.getElementById('btn-depsOnly').classList.toggle('active', ui.depsOnly);
+  if (ui.depsOnly && !ui.showDeps) {
+    ui.showDeps = true;
+    document.getElementById('btn-showDeps').classList.add('active');
+  }
+  render();
+}
+
+// ═══════════════════════════════════════════════════════════════════
+//  HELPERS
+// ═══════════════════════════════════════════════════════════════════
+function uid() { return Math.random().toString(36).slice(2,10); }
+
+function getBarStyle(task) {
+  const primaryGid = task.g || (task.gs||[])[0];
+  const grp = state.groups.find(g => g.id === primaryGid) || {color:'#64748b',light:'#f1f5f9'};
+  if (task.st === 'done')   return {bg:'#e5e7eb', stroke:'#9ca3af', text:'#9ca3af'};
+  if (task.st === 'risk')   return {bg:'#fee2e2', stroke:'#dc2626', text:'#b91c1c'};
+  if (task.st === 'wip')    return {bg:grp.light, stroke:grp.color, text:grp.color};
+  if (task.st === 'todo')   return {bg:'#f8fafc',  stroke:grp.color, text:grp.color};
+  if (task.st === 'custom') {
+    const c = task.color || grp.color;
+    return {bg:c+'22', stroke:c, text:c};
+  }
+  // Check custom statuses
+  const cs = (state.customStatuses || []).find(s => s.id === task.st);
+  if (cs) return {bg: cs.color + '28', stroke: cs.color, text: cs.color};
+  return {bg:grp.light, stroke:grp.color, text:grp.color};
+}
+
+// Status sort priority: risk=0 (most urgent first), wip=1, todo=2, done=3
+const STATUS_PRIORITY = { risk:0, wip:1, todo:2, custom:2, done:3 };
+
+// Today line position
+const _now = new Date();
+const _monthIdx    = _now.getMonth();
+const _daysInMonth = new Date(_now.getFullYear(), _now.getMonth()+1, 0).getDate();
+const TODAY_POS    = (_monthIdx + (_now.getDate()-1) / _daysInMonth) * COL_W;
+
+// ═══════════════════════════════════════════════════════════════════
+//  RENDER
+// ═══════════════════════════════════════════════════════════════════
+function render() {
+  const nM = state.months.length;
+  document.documentElement.style.setProperty('--cw', COL_W + 'px');
+  document.documentElement.style.setProperty('--lw', lblW + 'px');
+  document.documentElement.style.setProperty('--nM', nM);
+
+  document.getElementById('chart-title').textContent = state.title;
+
+  // Month header
+  const mw = document.getElementById('month-wrap');
+  mw.innerHTML = '';
+  state.months.forEach((m, i) => {
+    const el = document.createElement('div');
+    el.className = 'm-cell';
+    el.dataset.idx = i;
+    el.innerHTML = `<input value="${m.label}" data-i="${i}" onchange="renameMonth(${i},this.value)" onclick="this.select()">`;
+    mw.appendChild(el);
+  });
+
+  // Milestone labels in header
+  state.milestones.forEach(ms => {
+    const el = document.createElement('div');
+    el.style.cssText = `position:absolute;left:${ms.month*COL_W}px;top:0;transform:translateX(-50%);
+      text-align:center;pointer-events:auto;cursor:pointer;z-index:20;
+      font-size:10px;font-weight:700;color:${ms.color};line-height:1.25;padding:2px 0`;
+    el.innerHTML = `${ms.label}<br><span style="font-size:8.5px;font-weight:400;opacity:.8">${ms.sub||''}</span>`;
+    el.onclick = () => openMilestoneModal(ms.id);
+    mw.style.position = 'relative';
+    mw.appendChild(el);
+  });
+
+  // Body
+  const body = document.getElementById('g-body');
+  body.innerHTML = '';
+
+  state.groups.forEach(grp => {
+    let tasks = state.tasks.filter(t => (t.gs || [t.g]).includes(grp.id));
+
+    // Filters
+    if (ui.hideDone)  tasks = tasks.filter(t => t.st !== 'done');
+    if (ui.onlyRisk)  tasks = tasks.filter(t => t.st === 'risk');
+    if (ui.depsOnly)  tasks = tasks.filter(t =>
+      (t.blocks && t.blocks.length > 0) || (t.blockedBy && t.blockedBy.length > 0));
+
+    // Sort (operates on a shallow copy to avoid mutating state.tasks order unless user dragged)
+    if (sortMode === 'alpha') {
+      tasks = [...tasks].sort((a, b) => a.label.localeCompare(b.label));
+    } else if (sortMode === 'length') {
+      tasks = [...tasks].sort((a, b) => (a.e - a.s) - (b.e - b.s));
+    } else if (sortMode === 'status') {
+      tasks = [...tasks].sort((a, b) =>
+        (STATUS_PRIORITY[a.st] ?? 2) - (STATUS_PRIORITY[b.st] ?? 2));
+    }
+
+    // Group header
+    const gh = document.createElement('div');
+    gh.className = 'g-grp';
+    gh.dataset.gid = grp.id;
+    gh.style.background = grp.color;
+    gh.innerHTML = `
+      <span class="grp-drag" onmousedown="onGDragStart(event,'${grp.id}')" title="Drag to reorder group">⠿</span>
+      <div class="grp-strip" style="background:rgba(255,255,255,.35)"></div>
+      <input class="grp-name" value="${grp.label}" onchange="renameGroup('${grp.id}',this.value)">
+      <input type="color" class="grp-color-btn" value="${grp.color}" title="Change group color"
+        onchange="recolorGroup('${grp.id}',this.value)">
+      <button class="btn-add-t" onclick="openTaskModal(null,'${grp.id}')">＋ Add Task</button>
+      <button class="btn-del-g" onclick="deleteGroup('${grp.id}')">✕</button>
+    `;
+    body.appendChild(gh);
+
+    // Task rows
+    tasks.forEach(task => {
+      const row = document.createElement('div');
+      row.className = 't-row';
+      row.dataset.tid = task.id;
+      row.dataset.gid = grp.id;
+
+      const hasDeps = (task.blocks && task.blocks.length > 0) ||
+                      (task.blockedBy && task.blockedBy.length > 0);
+
+      // Label cell
+      const lc = document.createElement('div');
+      lc.className = 't-lbl';
+      lc.innerHTML = `
+        <span class="drag-hdl" onmousedown="onVDragStart(event,'${task.id}','${grp.id}')" title="Drag to reorder">⠿</span>
+        <span class="t-name" title="${task.label}">${task.label}</span>
+        ${hasDeps ? '<span class="dep-dot" title="Has dependencies">⬦</span>' : ''}
+        ${task.tk ? `<span class="t-ticket">${task.tk}</span>` : ''}`;
+      lc.style.borderLeftColor = grp.color;
+      lc.addEventListener('click', e => {
+        if (e.target.classList.contains('drag-hdl')) return;
+        openTaskModal(task.id);
+      });
+      lc.style.cursor = 'pointer';
+      row.appendChild(lc);
+
+      // Timeline cell
+      const tlc = document.createElement('div');
+      tlc.className = 't-tl';
+      tlc.style.width = (nM * COL_W) + 'px';
+
+      // Month boundary lines
+      for (let i = 1; i < nM; i++) {
+        const gl = document.createElement('div');
+        gl.className = 'g-line';
+        gl.style.left = (i * COL_W) + 'px';
+        tlc.appendChild(gl);
+      }
+      // Half-month lines
+      for (let i = 0; i < nM; i++) {
+        const gl = document.createElement('div');
+        gl.style.cssText = `position:absolute;top:0;bottom:0;width:1px;background:#f0f3f7;pointer-events:none;z-index:1;left:${i * COL_W + COL_W / 2}px`;
+        tlc.appendChild(gl);
+      }
+      // Milestone lines
+      state.milestones.forEach(ms => {
+        const ml = document.createElement('div');
+        ml.style.cssText = `position:absolute;left:${ms.month*COL_W}px;top:0;bottom:0;
+          width:2px;background:${ms.color};opacity:.35;pointer-events:none;z-index:3`;
+        tlc.appendChild(ml);
+      });
+      // Today line
+      const tl = document.createElement('div');
+      tl.style.cssText = `position:absolute;left:${TODAY_POS}px;top:0;bottom:0;
+        border-left:2px dashed #22c55e;opacity:.7;pointer-events:none;z-index:5`;
+      tlc.appendChild(tl);
+
+      // Bar
+      const style = getBarStyle(task);
+      const bx = task.s * COL_W + 1;
+      const bw = Math.max(14, (task.e - task.s) * COL_W - 2);
+      const bar = document.createElement('div');
+      bar.className = 'g-bar' + (task.st === 'todo' ? ' s-todo' : '');
+      bar.style.cssText = `left:${bx}px;width:${bw}px;background:${style.bg};
+        border-color:${style.stroke};color:${style.text}`;
+      bar.dataset.tid = task.id;
+      if (bw > 50) bar.innerHTML = `<span class="bar-txt">${task.label}</span>`;
+      bar.innerHTML += `<div class="bar-rh" data-resize="${task.id}"></div>`;
+      bar.addEventListener('mousedown', e => onBarDown(e, task.id));
+      bar.addEventListener('click',      e => { if (!wasDragged) openTaskModal(task.id); });
+      bar.addEventListener('mouseenter', e => showBarTooltip(task, e));
+      bar.addEventListener('mouseleave', hideBarTooltip);
+      bar.addEventListener('mousemove',  e => positionTooltip(e));
+      tlc.appendChild(bar);
+
+      row.appendChild(tlc);
+      body.appendChild(row);
+    });
+  });
+
+  // Update legend with custom statuses
+  const legendCustom = document.getElementById('legend-custom');
+  if (legendCustom) {
+    legendCustom.innerHTML = (state.customStatuses || []).map(cs =>
+      `<span class="li"><span class="ls" style="background:${cs.color}28;border-color:${cs.color};border-style:solid;display:inline-block"></span>${cs.label}</span>`
+    ).join('');
+  }
+
+  // Draw dep lines after layout settles
+  if (ui.showDeps) {
+    requestAnimationFrame(() => drawDependencyLines());
+  } else {
+    const old = document.getElementById('dep-svg');
+    if (old) old.remove();
+  }
+
+  save();
+}
+
+// ═══════════════════════════════════════════════════════════════════
+//  DEPENDENCY SVG LINES
+// ═══════════════════════════════════════════════════════════════════
+function drawDependencyLines() {
+  const body    = document.getElementById('g-body');
+  const old     = document.getElementById('dep-svg');
+  if (old) old.remove();
+  if (!ui.showDeps) return;
+
+  // Collect pairs (from blocker → to blocked)
+  const pairs = [];
+  state.tasks.forEach(task => {
+    (task.blocks || []).forEach(targetId => {
+      pairs.push({ from: task.id, to: targetId });
+    });
+  });
+  if (pairs.length === 0) return;
+
+  const bodyRect = body.getBoundingClientRect();
+  const NS = 'http://www.w3.org/2000/svg';
+  const svg = document.createElementNS(NS, 'svg');
+  svg.id = 'dep-svg';
+  svg.setAttribute('width',  body.offsetWidth);
+  svg.setAttribute('height', body.offsetHeight);
+
+  // Markers — two color variants: red (active/blocked) and green (blocker is done)
+  const defs = document.createElementNS(NS, 'defs');
+
+  function mkMarkers(suffix, color) {
+    const arrow = document.createElementNS(NS, 'marker');
+    arrow.setAttribute('id', `dep-arrow-${suffix}`);
+    arrow.setAttribute('markerWidth', '9');
+    arrow.setAttribute('markerHeight', '9');
+    arrow.setAttribute('refX', '8');
+    arrow.setAttribute('refY', '4.5');
+    arrow.setAttribute('orient', 'auto');
+    const arrowPoly = document.createElementNS(NS, 'polygon');
+    arrowPoly.setAttribute('points', '0 0, 9 4.5, 0 9');
+    arrowPoly.setAttribute('fill', color);
+    arrowPoly.setAttribute('fill-opacity', '0.85');
+    arrow.appendChild(arrowPoly);
+
+    const circ = document.createElementNS(NS, 'marker');
+    circ.setAttribute('id', `dep-circle-${suffix}`);
+    circ.setAttribute('markerWidth', '9');
+    circ.setAttribute('markerHeight', '9');
+    circ.setAttribute('refX', '4.5');
+    circ.setAttribute('refY', '4.5');
+    const circEl = document.createElementNS(NS, 'circle');
+    circEl.setAttribute('cx', '4.5');
+    circEl.setAttribute('cy', '4.5');
+    circEl.setAttribute('r',  '3');
+    circEl.setAttribute('fill',         '#fff');
+    circEl.setAttribute('stroke',       color);
+    circEl.setAttribute('stroke-width', '1.5');
+    circ.appendChild(circEl);
+    defs.appendChild(arrow);
+    defs.appendChild(circ);
+  }
+
+  mkMarkers('red',   '#dc2626');  // active blocking dep
+  mkMarkers('green', '#16a34a');  // blocker is done — dependency cleared
+  svg.appendChild(defs);
+
+  pairs.forEach(({ from, to }) => {
+    const fromRow = document.querySelector(`.t-row[data-tid="${from}"]`);
+    const toRow   = document.querySelector(`.t-row[data-tid="${to}"]`);
+    if (!fromRow || !toRow) return;
+
+    // Color based on blocker's status: green if done, red otherwise
+    const fromTask = state.tasks.find(t => t.id === from);
+    const isDone   = fromTask && fromTask.st === 'done';
+    const color    = isDone ? '#16a34a' : '#dc2626';
+    const variant  = isDone ? 'green'   : 'red';
+    const opacity  = isDone ? '0.5'     : '0.7';  // softer for cleared deps
+
+    const fr = fromRow.getBoundingClientRect();
+    const tr = toRow.getBoundingClientRect();
+    const y1 = fr.top - bodyRect.top + fr.height / 2;
+    const y2 = tr.top - bodyRect.top + tr.height / 2;
+
+    const x      = lblW - 6;
+    const spread = Math.min(48, Math.abs(y2 - y1) * 0.5 + 18);
+    const cx     = x - spread;
+
+    const path = document.createElementNS(NS, 'path');
+    path.setAttribute('d', `M ${x},${y1} C ${cx},${y1} ${cx},${y2} ${x},${y2}`);
+    path.setAttribute('stroke',          color);
+    path.setAttribute('stroke-opacity',  opacity);
+    path.setAttribute('stroke-width',    '1.5');
+    path.setAttribute('fill',            'none');
+    path.setAttribute('stroke-dasharray', isDone ? '3 5' : '5 4');  // shorter dashes for done
+    path.setAttribute('marker-start',    `url(#dep-circle-${variant})`);
+    path.setAttribute('marker-end',      `url(#dep-arrow-${variant})`);
+    path.style.animation = isDone
+      ? 'dash-flow 1.4s linear infinite'   // slower for cleared dep
+      : 'dash-flow 0.75s linear infinite'; // faster for active blocker
+    svg.appendChild(path);
+  });
+
+  body.appendChild(svg);
+}
+
+// ═══════════════════════════════════════════════════════════════════
+//  HORIZONTAL BAR DRAG (move + resize)
+// ═══════════════════════════════════════════════════════════════════
+let drag = null, wasDragged = false;
+
+function onBarDown(e, tid) {
+  hideBarTooltip();  // dismiss tooltip on drag/resize start
+  const isResize = e.target.dataset.resize;
+  const task = state.tasks.find(t => t.id === tid);
+  drag = {
+    tid, isResize: !!isResize,
+    x0: e.clientX, s0: task.s, e0: task.e,
+    dur: task.e - task.s
+  };
+  wasDragged = false;
+  e.preventDefault();
+  e.stopPropagation();
+}
+
+// ═══════════════════════════════════════════════════════════════════
+//  VERTICAL TASK DRAG (reorder within group)
+// ═══════════════════════════════════════════════════════════════════
+let colDrag = null;
+let vdrag   = null;
+
+function toggleColPin() {
+  const gantt = document.getElementById('gantt');
+  const btn   = document.getElementById('pin-col-btn');
+  const pinned = gantt.classList.toggle('col-pinned');
+  btn.classList.toggle('active', pinned);
+  btn.title = pinned ? 'Unpin column' : 'Pin column';
+  save();
+}
+
+function onColResizeDown(e) {
+  e.preventDefault();
+  e.stopPropagation();
+  colDrag = { x0: e.clientX, w0: lblW };
+  document.getElementById('col-resize-hdl').classList.add('dragging');
+  document.body.style.cursor = 'col-resize';
+}
+
+function onVDragStart(e, tid, gid) {
+  e.stopPropagation();
+  e.preventDefault();
+  vdrag = {tid, gid, overTid: null, overPos: null};
+  document.body.style.cursor = 'grabbing';
+}
+
+function reorderTask(tid, targetTid, pos) {
+  const fi = state.tasks.findIndex(t => t.id === tid);
+  if (fi === -1) return;
+  const [task] = state.tasks.splice(fi, 1);
+  const ti = state.tasks.findIndex(t => t.id === targetTid);
+  if (ti === -1) { state.tasks.push(task); }
+  else { state.tasks.splice(pos === 'below' ? ti + 1 : ti, 0, task); }
+  save();
+}
+
+// ═══════════════════════════════════════════════════════════════════
+//  GROUP DRAG (reorder entire groups)
+// ═══════════════════════════════════════════════════════════════════
+let gdrag = null;
+
+function onGDragStart(e, gid) {
+  e.stopPropagation();
+  e.preventDefault();
+  gdrag = {gid, overGid: null, overPos: null};
+  document.body.style.cursor = 'grabbing';
+}
+
+function reorderGroup(gid, targetGid, pos) {
+  const fi = state.groups.findIndex(g => g.id === gid);
+  if (fi === -1) return;
+  const [grp] = state.groups.splice(fi, 1);
+  const ti = state.groups.findIndex(g => g.id === targetGid);
+  if (ti === -1) { state.groups.push(grp); }
+  else { state.groups.splice(pos === 'below' ? ti + 1 : ti, 0, grp); }
+  save();
+}
+
+// ═══════════════════════════════════════════════════════════════════
+//  UNIFIED MOUSE MOVE / UP
+// ═══════════════════════════════════════════════════════════════════
+document.addEventListener('mousemove', e => {
+  if (colDrag) {
+    const dx = e.clientX - colDrag.x0;
+    lblW = Math.max(120, Math.min(520, colDrag.w0 + dx));
+    document.documentElement.style.setProperty('--lw', lblW + 'px');
+    return;
+  }
+  if (drag) {
+    const dx   = e.clientX - drag.x0;
+    const dM   = Math.round(dx / COL_W);
+    const nM   = state.months.length;
+    const task = state.tasks.find(t => t.id === drag.tid);
+    if (!task) return;
+    if (Math.abs(dx) > 4) wasDragged = true;
+    if (drag.isResize) {
+      task.e = Math.max(task.s + 0.5, Math.min(nM, drag.e0 + dM));
+    } else {
+      const ns = Math.max(0, Math.min(nM - 1, drag.s0 + dM));
+      task.s = ns;
+      task.e = Math.min(nM, ns + drag.dur);
+    }
+    render();
+    return;
+  }
+  if (vdrag) {
+    const rows = [...document.querySelectorAll(`.t-row[data-gid="${vdrag.gid}"]`)];
+    rows.forEach(r => r.classList.remove('drop-above', 'drop-below'));
+    vdrag.overTid = null;
+    for (const r of rows) {
+      const rect = r.getBoundingClientRect();
+      if (e.clientY >= rect.top && e.clientY < rect.bottom) {
+        const mid = (rect.top + rect.bottom) / 2;
+        const pos = e.clientY < mid ? 'above' : 'below';
+        r.classList.add(pos === 'above' ? 'drop-above' : 'drop-below');
+        vdrag.overTid = r.dataset.tid;
+        vdrag.overPos = pos;
+        break;
+      }
+    }
+    return;
+  }
+  if (gdrag) {
+    const grps = [...document.querySelectorAll('.g-grp[data-gid]')];
+    grps.forEach(g => g.classList.remove('drop-above', 'drop-below'));
+    gdrag.overGid = null;
+    for (const g of grps) {
+      const rect = g.getBoundingClientRect();
+      if (e.clientY >= rect.top && e.clientY < rect.bottom) {
+        const mid = (rect.top + rect.bottom) / 2;
+        const pos = e.clientY < mid ? 'above' : 'below';
+        g.classList.add(pos === 'above' ? 'drop-above' : 'drop-below');
+        gdrag.overGid = g.dataset.gid;
+        gdrag.overPos = pos;
+        break;
+      }
+    }
+  }
+});
+
+document.addEventListener('mouseup', e => {
+  document.body.style.cursor = '';
+  if (colDrag) {
+    colDrag = null;
+    document.getElementById('col-resize-hdl').classList.remove('dragging');
+    save();
+    return;
+  }
+  if (drag) { drag = null; save(); }
+  if (vdrag) {
+    if (vdrag.overTid && vdrag.overTid !== vdrag.tid)
+      reorderTask(vdrag.tid, vdrag.overTid, vdrag.overPos);
+    document.querySelectorAll('.t-row').forEach(r => r.classList.remove('drop-above', 'drop-below'));
+    vdrag = null;
+    render();
+    return;
+  }
+  if (gdrag) {
+    if (gdrag.overGid && gdrag.overGid !== gdrag.gid)
+      reorderGroup(gdrag.gid, gdrag.overGid, gdrag.overPos);
+    document.querySelectorAll('.g-grp').forEach(g => g.classList.remove('drop-above', 'drop-below'));
+    gdrag = null;
+    render();
+  }
+});
+
+// ═══════════════════════════════════════════════════════════════════
+//  RENAME (inline)
+// ═══════════════════════════════════════════════════════════════════
+function renameMonth(i, v) { state.months[i].label = v; save(); }
+function renameGroup(id, v) {
+  const g = state.groups.find(x => x.id === id);
+  if (g) { g.label = v; save(); }
+}
+function recolorGroup(id, color) {
+  const g = state.groups.find(x => x.id === id);
+  if (!g) return;
+  g.color = color;
+  g.light = color + '33';
+  save();
+  render();
+}
+document.getElementById('chart-title').addEventListener('input', e => {
+  state.title = e.target.textContent; save();
+});
+
+// ═══════════════════════════════════════════════════════════════════
+//  DEPENDENCY HELPERS (modal)
+// ═══════════════════════════════════════════════════════════════════
+let _modalBlocks    = [];
+let _modalBlockedBy = [];
+let _modalTid       = null;
+
+function populateDepGroupSel(selId) {
+  const sel = document.getElementById(selId);
+  sel.innerHTML = '<option value="">— Group —</option>' +
+    state.groups.map(g => `<option value="${g.id}">${g.label}</option>`).join('');
+}
+
+function populateDepTaskSel(taskSelId, groupSelId, type) {
+  const gid     = document.getElementById(groupSelId).value;
+  const taskSel = document.getElementById(taskSelId);
+  const already = type === 'blocks' ? _modalBlocks : _modalBlockedBy;
+
+  taskSel.innerHTML = '<option value="">— Task —</option>';
+  if (!gid) return;
+
+  state.tasks
+    .filter(t => (t.gs || [t.g]).includes(gid) && t.id !== _modalTid && !already.includes(t.id))
+    .sort((a, b) => a.label.localeCompare(b.label))
+    .forEach(t => {
+      const opt = document.createElement('option');
+      opt.value = t.id;
+      opt.textContent = t.label;
+      taskSel.appendChild(opt);
+    });
+}
+
+function addDepLink(type) {
+  const taskSel = document.getElementById(`dep-task-${type}`);
+  const tid = taskSel.value;
+  if (!tid) return;
+  if (type === 'blocks') {
+    if (!_modalBlocks.includes(tid)) _modalBlocks.push(tid);
+  } else {
+    if (!_modalBlockedBy.includes(tid)) _modalBlockedBy.push(tid);
+  }
+  renderDepChips(type);
+  taskSel.value = '';
+  populateDepTaskSel(`dep-task-${type}`, `dep-group-${type}`, type);
+  _persistDepChangesNow();  // auto-save immediately for existing tasks
+}
+
+function removeDepLink(type, taskId) {
+  if (type === 'blocks') {
+    _modalBlocks = _modalBlocks.filter(id => id !== taskId);
+  } else {
+    _modalBlockedBy = _modalBlockedBy.filter(id => id !== taskId);
+  }
+  renderDepChips(type);
+  populateDepTaskSel(`dep-task-${type}`, `dep-group-${type}`, type);
+  _persistDepChangesNow();  // auto-save immediately for existing tasks
+}
+
+// Immediately write dep changes from modal arrays back to state (existing tasks only).
+// New tasks have no ID yet — their deps are committed when saveTask() is called.
+function _persistDepChangesNow() {
+  if (!_modalTid) return;
+  const task = state.tasks.find(t => t.id === _modalTid);
+  if (!task) return;
+  task.blocks    = [..._modalBlocks];
+  task.blockedBy = [..._modalBlockedBy];
+  syncDependencies(task);
+  save();
+  // Refresh dep lines live if visible — no full re-render needed
+  if (ui.showDeps) requestAnimationFrame(() => drawDependencyLines());
+}
+
+function renderDepChips(type) {
+  const container = document.getElementById(`dep-chips-${type}`);
+  const ids = type === 'blocks' ? _modalBlocks : _modalBlockedBy;
+  container.innerHTML = '';
+  ids.forEach(id => {
+    const task = state.tasks.find(t => t.id === id);
+    const label = task ? task.label : id;
+    const chip = document.createElement('span');
+    chip.className = 'dep-chip';
+    chip.innerHTML = `<span class="dep-chip-txt" title="${label}">${label}</span>` +
+      `<button class="dep-chip-rm" onclick="removeDepLink('${type}','${id}')" title="Remove">×</button>`;
+    container.appendChild(chip);
+  });
+}
+
+// Ensure bidirectional consistency after saving
+function syncDependencies(savedTask) {
+  const tid = savedTask.id;
+
+  // Add reverse refs
+  (savedTask.blocks || []).forEach(targetId => {
+    const t = state.tasks.find(x => x.id === targetId);
+    if (!t) return;
+    if (!t.blockedBy) t.blockedBy = [];
+    if (!t.blockedBy.includes(tid)) t.blockedBy.push(tid);
+  });
+  (savedTask.blockedBy || []).forEach(sourceId => {
+    const t = state.tasks.find(x => x.id === sourceId);
+    if (!t) return;
+    if (!t.blocks) t.blocks = [];
+    if (!t.blocks.includes(tid)) t.blocks.push(tid);
+  });
+
+  // Remove stale reverse refs from tasks no longer linked
+  state.tasks.forEach(t => {
+    if (t.id === tid) return;
+    if (t.blockedBy && !savedTask.blocks.includes(t.id))
+      t.blockedBy = t.blockedBy.filter(id => id !== tid);
+    if (t.blocks && !savedTask.blockedBy.includes(t.id))
+      t.blocks = t.blocks.filter(id => id !== tid);
+  });
+}
+
+// ═══════════════════════════════════════════════════════════════════
+//  TASK MODAL
+// ═══════════════════════════════════════════════════════════════════
+function openTaskModal(tid, defaultGroup) {
+  const task  = tid ? state.tasks.find(t => t.id === tid) : null;
+  const isNew = !task;
+  _modalTid   = tid || null;
+
+  document.getElementById('task-modal-title').textContent = isNew ? 'Add Task' : 'Edit Task';
+  document.getElementById('t-del-btn').style.display = isNew ? 'none' : '';
+  document.getElementById('t-id').value = tid || '';
+
+  // Group multi-select
+  const gSel = document.getElementById('t-group');
+  gSel.innerHTML = state.groups.map(g => `<option value="${g.id}">${g.label}</option>`).join('');
+  const taskGs = task?.gs || (task?.g ? [task.g] : []);
+  Array.from(gSel.options).forEach(opt => {
+    opt.selected = taskGs.length > 0 ? taskGs.includes(opt.value)
+                                     : opt.value === (defaultGroup || state.groups[0]?.id);
+  });
+
+  // Month selects
+  const startSel = document.getElementById('t-start');
+  startSel.innerHTML = state.months.map((m, i) =>
+    `<option value="${i}">${m.label} — start</option>` +
+    `<option value="${i + 0.5}">${m.label} — mid</option>`
+  ).join('');
+
+  const endSel = document.getElementById('t-end');
+  endSel.innerHTML = state.months.map((m, i) =>
+    `<option value="${i + 0.5}">${m.label} — mid</option>` +
+    `<option value="${i + 1}">${m.label} — end</option>`
+  ).join('');
+
+  if (isNew) {
+    // Smart start default: day >= 15 → mid of current month, else start of current month
+    const day          = _now.getDate();
+    const defaultStart = day >= 15 ? _monthIdx + 0.5 : _monthIdx;
+    const defaultEnd   = Math.min(state.months.length, defaultStart + 1);
+
+    document.getElementById('t-name').value     = '';
+    startSel.value = defaultStart;
+    endSel.value   = defaultEnd;
+    document.getElementById('t-status').value   = 'todo';  // default: Planned
+    document.getElementById('t-color').value    = '#6366f1';
+    document.getElementById('t-ticket').value   = '';
+    document.getElementById('t-moreinfo').value = '';
+    document.getElementById('t-comments').value = '';
+    _modalBlocks    = [];
+    _modalBlockedBy = [];
+  } else {
+    document.getElementById('t-name').value     = task.label;
+    startSel.value = task.s ?? 0;
+    endSel.value   = task.e ?? 1;
+    document.getElementById('t-status').value   = task.st || 'wip';
+    document.getElementById('t-color').value    = task.color || '#6366f1';
+    document.getElementById('t-ticket').value   = task.tk || '';
+    document.getElementById('t-moreinfo').value = task.moreInfo || '';
+    document.getElementById('t-comments').value = task.comments || '';
+    _modalBlocks    = [...(task.blocks    || [])];
+    _modalBlockedBy = [...(task.blockedBy || [])];
+  }
+
+  // Dep selects
+  populateDepGroupSel('dep-group-blocks');
+  populateDepGroupSel('dep-group-blockedBy');
+  renderDepChips('blocks');
+  renderDepChips('blockedBy');
+
+  populateStatusSel(isNew ? 'todo' : (task?.st || 'wip'));
+  toggleColorRow();
+  document.getElementById('t-status').onchange = toggleColorRow;
+  openModal('task-ov');
+}
+
+function toggleColorRow() {
+  const v = document.getElementById('t-status').value;
+  // Show color picker only for legacy 'custom' status (custom statuses have their own color)
+  document.getElementById('t-color-row').style.display = v === 'custom' ? '' : 'none';
+}
+
+function saveTask() {
+  const tid    = document.getElementById('t-id').value;
+  const gSel   = document.getElementById('t-group');
+  const selectedGs = Array.from(gSel.selectedOptions).map(o => o.value).filter(Boolean);
+  if (selectedGs.length === 0) selectedGs.push(state.groups[0]?.id || '');
+
+  const data = {
+    id:        tid || uid(),
+    g:         selectedGs[0],
+    gs:        selectedGs,
+    label:     document.getElementById('t-name').value.trim() || 'Untitled',
+    s:         +document.getElementById('t-start').value,
+    e:         +document.getElementById('t-end').value,
+    st:        document.getElementById('t-status').value,
+    color:     document.getElementById('t-color').value,
+    tk:        document.getElementById('t-ticket').value.trim(),
+    moreInfo:  document.getElementById('t-moreinfo').value.trim(),
+    comments:  document.getElementById('t-comments').value.trim(),
+    blocks:    [..._modalBlocks],
+    blockedBy: [..._modalBlockedBy]
+  };
+  if (data.e <= data.s) data.e = data.s + 0.5;
+
+  if (tid) {
+    const idx = state.tasks.findIndex(t => t.id === tid);
+    if (idx > -1) state.tasks[idx] = data;
+  } else {
+    state.tasks.push(data);
+  }
+  syncDependencies(data);
+  closeModal('task-ov');
+  render();
+}
+
+function deleteTask() {
+  const tid = document.getElementById('t-id').value;
+  if (!confirm('Delete this task?')) return;
+  // Clean up reverse dep refs
+  state.tasks.forEach(t => {
+    t.blocks    = (t.blocks    || []).filter(id => id !== tid);
+    t.blockedBy = (t.blockedBy || []).filter(id => id !== tid);
+  });
+  state.tasks = state.tasks.filter(t => t.id !== tid);
+  closeModal('task-ov');
+  render();
+}
+
+// ═══════════════════════════════════════════════════════════════════
+//  GROUP MODAL
+// ═══════════════════════════════════════════════════════════════════
+function openGroupModal() {
+  document.getElementById('g-name').value  = '';
+  document.getElementById('g-color').value = '#6366f1';
+  openModal('grp-ov');
+}
+function saveGroup() {
+  const label = document.getElementById('g-name').value.trim() || 'New Group';
+  const color = document.getElementById('g-color').value;
+  const light = color + '33';
+  state.groups.push({ id: uid(), label, color, light });
+  closeModal('grp-ov');
+  render();
+}
+function deleteGroup(id) {
+  if (!confirm('Delete this group and all its tasks?')) return;
+  const deletedIds = state.tasks
+    .filter(t => (t.gs || [t.g]).every(gid => gid === id))
+    .map(t => t.id);
+  state.groups = state.groups.filter(g => g.id !== id);
+  state.tasks.forEach(t => { t.gs = (t.gs || [t.g]).filter(gid => gid !== id); });
+  state.tasks = state.tasks.filter(t => t.gs.length > 0);
+  state.tasks.forEach(t => {
+    if (t.g === id) t.g = t.gs[0];
+    t.blocks    = (t.blocks    || []).filter(id => !deletedIds.includes(id));
+    t.blockedBy = (t.blockedBy || []).filter(id => !deletedIds.includes(id));
+  });
+  render();
+}
+
+// ═══════════════════════════════════════════════════════════════════
+//  MILESTONE MODAL
+// ═══════════════════════════════════════════════════════════════════
+function openMilestoneModal(mid) {
+  const ms   = mid ? state.milestones.find(m => m.id === mid) : null;
+  const isNew = !ms;
+  document.getElementById('ms-title').textContent = isNew ? 'Add Milestone' : 'Edit Milestone';
+  document.getElementById('ms-del-btn').style.display = isNew ? 'none' : '';
+  document.getElementById('ms-id').value = mid || '';
+
+  const sel = document.getElementById('ms-month');
+  sel.innerHTML = state.months.map((m, i) =>
+    `<option value="${i}"     ${Number(ms?.month)=== i      ?'selected':''}>${m.label} — start</option>` +
+    `<option value="${i+0.5}" ${Number(ms?.month)===(i+0.5) ?'selected':''}>${m.label} — mid</option>`
+  ).join('');
+  sel.value = ms?.month ?? 0;
+
+  document.getElementById('ms-label').value = ms?.label || '★  M';
+  document.getElementById('ms-sub').value   = ms?.sub   || '';
+  document.getElementById('ms-color').value = ms?.color || '#ef4444';
+  openModal('ms-ov');
+}
+function saveMilestone() {
+  const mid = document.getElementById('ms-id').value;
+  const data = {
+    id:    mid || uid(),
+    month: +document.getElementById('ms-month').value,
+    label: document.getElementById('ms-label').value.trim(),
+    sub:   document.getElementById('ms-sub').value.trim(),
+    color: document.getElementById('ms-color').value
+  };
+  if (mid) {
+    const idx = state.milestones.findIndex(m => m.id === mid);
+    if (idx > -1) state.milestones[idx] = data;
+  } else {
+    state.milestones.push(data);
+  }
+  closeModal('ms-ov');
+  render();
+}
+function deleteMilestone() {
+  const mid = document.getElementById('ms-id').value;
+  if (!confirm('Delete this milestone?')) return;
+  state.milestones = state.milestones.filter(m => m.id !== mid);
+  closeModal('ms-ov');
+  render();
+}
+
+// ═══════════════════════════════════════════════════════════════════
+//  MONTH EDITOR MODAL
+// ═══════════════════════════════════════════════════════════════════
+let tmpMonths = [];
+function openMonthModal() {
+  tmpMonths = state.months.map(m => ({...m}));
+  renderMonthList();
+  openModal('month-ov');
+}
+function renderMonthList() {
+  document.getElementById('month-list').innerHTML = tmpMonths.map((m,i) => `
+    <div style="display:flex;gap:6px;align-items:center;margin-bottom:6px">
+      <span style="font-size:11px;color:#94a3b8;width:20px;text-align:right">${i+1}</span>
+      <input value="${m.label}" onchange="tmpMonths[${i}].label=this.value"
+        style="flex:1;padding:6px 8px;border:1.5px solid #e2e8f0;border-radius:5px;font-size:13px">
+      <button onclick="tmpMonths.splice(${i},1);renderMonthList()"
+        style="background:#fee2e2;color:#dc2626;border:none;border-radius:5px;padding:5px 8px;cursor:pointer;font-weight:700">✕</button>
+    </div>`).join('');
+}
+function addMonth() {
+  tmpMonths.push({label:'New'});
+  renderMonthList();
+}
+function saveMonths() {
+  if (tmpMonths.length < 1) return;
+  const max = tmpMonths.length;
+  state.tasks.forEach(t => { t.s = Math.min(t.s, max - 1); t.e = Math.min(t.e, max); });
+  state.milestones.forEach(m => { m.month = Math.min(m.month, max); });
+  state.months = tmpMonths;
+  closeModal('month-ov');
+  render();
+}
+
+// ═══════════════════════════════════════════════════════════════════
+//  NEW GANTT
+// ═══════════════════════════════════════════════════════════════════
+function newGantt() {
+  if (!confirm('Start a new blank Gantt? All unsaved changes will be lost.')) return;
+  state = {
+    ver: 2,
+    title: 'New Gantt',
+    months: [
+      {label:'Jan'},{label:'Feb'},{label:'Mar'},{label:'Apr'},{label:'May'},
+      {label:'Jun'},{label:'Jul'},{label:'Aug'},{label:'Sep'}
+    ],
+    customStatuses: [],
+    tooltipEnabled: true,
+    milestones: [],
+    groups: [],
+    tasks: []
+  };
+  lblW = 220;
+  _fileHandle = null;
+  try { localStorage.removeItem('ssp-gantt-state'); } catch(e) {}
+  document.getElementById('gantt').classList.remove('col-pinned');
+  document.getElementById('pin-col-btn').classList.remove('active');
+  showSaveStatus('New Gantt created');
+  render();
+  openWelcomeModal();
+}
+
+// ═══════════════════════════════════════════════════════════════════
+//  SAVE / LOAD JSON
+// ═══════════════════════════════════════════════════════════════════
+let _fileHandle = null;
+
+function showSaveStatus(msg) {
+  const el = document.getElementById('save-status');
+  el.textContent = msg || '✓ Saved';
+  el.style.opacity = '1';
+  clearTimeout(el._fadeTimer);
+  el._fadeTimer = setTimeout(() => { el.style.opacity = '0'; }, 1800);
+}
+
+async function _writeToHandle(handle, json) {
+  const writable = await handle.createWritable();
+  await writable.write(json);
+  await writable.close();
+}
+
+let _autoSaveTimer = null;
+function autoSaveToFile() {
+  if (!_fileHandle) return;
+  clearTimeout(_autoSaveTimer);
+  _autoSaveTimer = setTimeout(async () => {
+    try {
+      await _writeToHandle(_fileHandle, JSON.stringify(state, null, 2));
+      showSaveStatus('✓ Auto-saved');
+    } catch(e) {}
+  }, 400);
+}
+
+async function saveJSON() {
+  const json = JSON.stringify(state, null, 2);
+  if (window.showSaveFilePicker) {
+    try {
+      const handle = await window.showSaveFilePicker({
+        suggestedName: 'ssp-gantt.json',
+        types: [{ description: 'JSON file', accept: { 'application/json': ['.json'] } }]
+      });
+      _fileHandle = handle;
+      await _writeToHandle(handle, json);
+      refreshFileLocationDisplay();
+      showSaveStatus('✓ Saved');
+    } catch(e) {
+      if (e.name !== 'AbortError') _fallbackDownload(json);
+    }
+  } else {
+    _fallbackDownload(json);
+  }
+}
+
+function _fallbackDownload(json) {
+  const a = document.createElement('a');
+  a.href = 'data:application/json;charset=utf-8,' + encodeURIComponent(json);
+  a.download = 'ssp-gantt.json';
+  a.click();
+}
+
+async function openJSONFile() {
+  if (window.showOpenFilePicker) {
+    try {
+      const [handle] = await window.showOpenFilePicker({
+        types: [{ description: 'JSON file', accept: { 'application/json': ['.json'] } }]
+      });
+      _fileHandle = handle;
+      refreshFileLocationDisplay();
+      const file = await handle.getFile();
+      const text = await file.text();
+      _applyLoadedState(JSON.parse(text));
+    } catch(e) {
+      if (e.name !== 'AbortError') document.getElementById('file-input').click();
+    }
+  } else {
+    document.getElementById('file-input').click();
+  }
+}
+
+function loadJSONFallback(event) {
+  const file = event.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = e => {
+    try { _applyLoadedState(JSON.parse(e.target.result)); }
+    catch(err) { alert('Invalid JSON file'); }
+  };
+  reader.readAsText(file);
+  event.target.value = '';
+}
+
+function _applyLoadedState(loaded) {
+  state = loaded;
+  if (!state.customStatuses) state.customStatuses = [];
+  if (state.tooltipEnabled === undefined) state.tooltipEnabled = true;
+  state.tasks.forEach(t => {
+    if (!t.gs)        t.gs        = t.g ? [t.g] : [];
+    if (!t.blocks)    t.blocks    = [];
+    if (!t.blockedBy) t.blockedBy = [];
+  });
+  if (state.lblW) lblW = state.lblW;
+  render();
+  showSaveStatus('✓ Loaded');
+}
+
+// ═══════════════════════════════════════════════════════════════════
+//  CUSTOM STATUSES
+// ═══════════════════════════════════════════════════════════════════
+function populateStatusSel(currentVal) {
+  const sel = document.getElementById('t-status');
+  const builtIn = [
+    { value:'wip',    label:'🔵 In Progress' },
+    { value:'todo',   label:'⬜ Planned'      },
+    { value:'done',   label:'✓ Done'          },
+    { value:'risk',   label:'⚠ Risk / Blocked'},
+    { value:'custom', label:'🎨 Custom color' }
+  ];
+  sel.innerHTML = builtIn.map(s =>
+    `<option value="${s.value}"${s.value === currentVal ? ' selected' : ''}>${s.label}</option>`
+  ).join('');
+  if ((state.customStatuses || []).length > 0) {
+    const sep = document.createElement('option');
+    sep.disabled = true;
+    sep.textContent = '── Custom ──';
+    sel.appendChild(sep);
+    state.customStatuses.forEach(cs => {
+      const opt = document.createElement('option');
+      opt.value = cs.id;
+      opt.textContent = '● ' + cs.label;
+      opt.style.color = cs.color;
+      if (cs.id === currentVal) opt.selected = true;
+      sel.appendChild(opt);
+    });
+  }
+}
+
+function openStatusModal() {
+  renderStatusList();
+  document.getElementById('cs-new-label').value = '';
+  openModal('status-ov');
+}
+
+function renderStatusList() {
+  const list = document.getElementById('cs-list');
+  const css  = state.customStatuses || [];
+  if (css.length === 0) {
+    list.innerHTML = `<p style="font-size:11px;color:#94a3b8;padding:6px 0">No custom statuses yet.</p>`;
+    return;
+  }
+  list.innerHTML = '';
+  css.forEach(cs => {
+    const row = document.createElement('div');
+    row.className = 'cs-row';
+    row.innerHTML = `
+      <input type="color" class="cs-swatch" value="${cs.color}"
+        onchange="updateCustomStatusColor('${cs.id}',this.value)" title="Change color">
+      <span class="cs-label" style="color:${cs.color};font-weight:600">${cs.label}</span>
+      <button class="cs-del" onclick="deleteCustomStatus('${cs.id}')" title="Delete status">🗑</button>`;
+    list.appendChild(row);
+  });
+}
+
+function addCustomStatus() {
+  const label = document.getElementById('cs-new-label').value.trim();
+  if (!label) return;
+  const color = document.getElementById('cs-new-color').value;
+  if (!state.customStatuses) state.customStatuses = [];
+  state.customStatuses.push({ id: 'cs_' + uid(), label, color });
+  document.getElementById('cs-new-label').value = '';
+  renderStatusList();
+  save();
+  render();
+}
+
+function deleteCustomStatus(id) {
+  if (!confirm('Delete this custom status? Tasks using it will keep the status ID but render as default color.')) return;
+  state.customStatuses = (state.customStatuses || []).filter(cs => cs.id !== id);
+  renderStatusList();
+  save();
+  render();
+}
+
+function updateCustomStatusColor(id, color) {
+  const cs = (state.customStatuses || []).find(s => s.id === id);
+  if (cs) { cs.color = color; save(); render(); }
+  renderStatusList();
+}
+
+// ═══════════════════════════════════════════════════════════════════
+//  BAR HOVER TOOLTIP
+// ═══════════════════════════════════════════════════════════════════
+const ST_LABELS = {
+  wip:'In Progress', todo:'Planned', done:'Done ✓',
+  risk:'Risk / Blocked', custom:'Custom color'
+};
+
+function getStatusLabel(st) {
+  if (ST_LABELS[st]) return ST_LABELS[st];
+  const cs = (state.customStatuses || []).find(s => s.id === st);
+  return cs ? cs.label : st;
+}
+
+// Inline SVG icons matching the dep-line markers
+const TT_CIRCLE_SVG =
+  `<svg width="13" height="13" viewBox="0 0 13 13" style="flex-shrink:0;vertical-align:middle">` +
+  `<circle cx="6.5" cy="6.5" r="3.5" fill="#fff" stroke="#dc2626" stroke-width="1.5"/></svg>`;
+
+const TT_ARROW_SVG =
+  `<svg width="13" height="13" viewBox="0 0 13 13" style="flex-shrink:0;vertical-align:middle">` +
+  `<polygon points="1 2.5, 12 6.5, 1 10.5" fill="#dc2626" fill-opacity="0.85"/></svg>`;
+
+function showBarTooltip(task, e) {
+  if (!state.tooltipEnabled) return;
+  const tt = document.getElementById('bar-tooltip');
+
+  const blocksOthers = task.blocks    && task.blocks.length    > 0;
+  const isBlocked    = task.blockedBy && task.blockedBy.length > 0;
+
+  // Dep icons: circle = this task IS a blocker (origin); arrow = this task IS blocked (destination)
+  const depIcons = (blocksOthers || isBlocked)
+    ? `<span class="tt-dep-icons">${blocksOthers ? TT_CIRCLE_SVG : ''}${isBlocked ? TT_ARROW_SVG : ''}</span>`
+    : '';
+
+  tt.innerHTML =
+    `<div class="tt-name">${task.label}</div>` +
+    (task.tk ? `<div class="tt-ticket">${task.tk}</div>` : '') +
+    `<div class="tt-status"><span class="tt-status-val">${getStatusLabel(task.st)}</span>${depIcons}</div>`;
+
+  positionTooltip(e);
+  tt.classList.add('tt-visible');
+}
+
+function hideBarTooltip() {
+  const tt = document.getElementById('bar-tooltip');
+  if (tt) tt.classList.remove('tt-visible');
+}
+
+function positionTooltip(e) {
+  const tt = document.getElementById('bar-tooltip');
+  if (!tt || !tt.classList.contains('tt-visible')) return;
+  const vw = window.innerWidth, vh = window.innerHeight;
+  const tw = tt.offsetWidth  || 200;
+  const th = tt.offsetHeight || 56;
+  let x = e.clientX + 16;
+  let y = e.clientY + 16;
+  if (x + tw > vw - 10) x = e.clientX - tw - 10;
+  if (y + th > vh - 10) y = e.clientY - th - 10;
+  tt.style.left = x + 'px';
+  tt.style.top  = y + 'px';
+}
+
+// ═══════════════════════════════════════════════════════════════════
+//  WELCOME & TUTORIAL MODALS
+// ═══════════════════════════════════════════════════════════════════
+function openWelcomeModal() { openModal('welcome-ov'); }
+function openTutorialModal() { openModal('tutorial-ov'); }
+
+// ═══════════════════════════════════════════════════════════════════
+//  SETTINGS MODAL
+// ═══════════════════════════════════════════════════════════════════
+function refreshFileLocationDisplay() {
+  const el = document.getElementById('set-loc-file');
+  if (!el) return;
+  if (_fileHandle && _fileHandle.name) {
+    el.textContent = _fileHandle.name;
+    el.classList.remove('unset');
+  } else {
+    el.textContent = 'Not linked — browser storage only';
+    el.classList.add('unset');
+  }
+}
+
+function syncFeatureFlags() {
+  const cb = document.getElementById('flag-tooltipEnabled');
+  if (cb) cb.checked = !!state.tooltipEnabled;
+}
+
+function setFeatureFlag(key, value) {
+  state[key] = value;
+  save();
+}
+
+function openSettingsModal() {
+  refreshFileLocationDisplay();
+  syncFeatureFlags();
+  openModal('settings-ov');
+}
+
+// ═══════════════════════════════════════════════════════════════════
+//  QUICK-ADD DROPDOWN
+// ═══════════════════════════════════════════════════════════════════
+function toggleQAdd(e) {
+  e.stopPropagation();
+  const menu = document.getElementById('qadd-menu');
+  menu.classList.toggle('open');
+}
+
+function qaddAction(fn) {
+  document.getElementById('qadd-menu').classList.remove('open');
+  fn();
+}
+
+// Close quick-add menu on click outside
+document.addEventListener('click', e => {
+  const wrap = document.getElementById('qadd-wrap');
+  if (wrap && !wrap.contains(e.target))
+    document.getElementById('qadd-menu').classList.remove('open');
+});
+
+// ═══════════════════════════════════════════════════════════════════
+//  MODAL HELPERS
+// ═══════════════════════════════════════════════════════════════════
+function openModal(id)  { document.getElementById(id).classList.remove('hidden'); }
+function closeModal(id) { document.getElementById(id).classList.add('hidden'); }
+
+document.querySelectorAll('.ov').forEach(ov => {
+  ov.addEventListener('click', e => { if (e.target === ov) ov.classList.add('hidden'); });
+});
+
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape')
+    document.querySelectorAll('.ov:not(.hidden)').forEach(ov => ov.classList.add('hidden'));
+});
+
+// ═══════════════════════════════════════════════════════════════════
+//  INIT
+// ═══════════════════════════════════════════════════════════════════
+render();
+if (_isFirstLoad) openWelcomeModal();
+</script>
+
+<!-- ── Bar hover tooltip ── -->
+<div id="bar-tooltip"></div>
+</body>
+</html>
