@@ -761,73 +761,17 @@ let lblW = 220;      // px label column — user-adjustable
 // Dep model: task.blocks=[taskId,…], task.blockedBy=[taskId,…] — always synced bidirectionally
 let state = {
   ver: 2,
-  title: "Modernized SSP — Epic-Level Gantt",
+  title: "My Gantt",
   months: [
     {label:"Jan"},{label:"Feb"},{label:"Mar"},{label:"Apr"},{label:"May"},
-    {label:"Jun"},{label:"Jul"},{label:"Aug"},{label:"Sep"}
+    {label:"Jun"},{label:"Jul"},{label:"Aug"},{label:"Sep"},{label:"Oct"},
+    {label:"Nov"},{label:"Dec"}
   ],
-  milestones: [
-    {id:"ms1", month:5, label:"★  M1",    sub:"Jun 1, 2026",  color:"#ef4444"},
-    {id:"ms2", month:8, label:"★  M1.5",  sub:"Sep 1, 2026",  color:"#7c3aed"}
-  ],
+  milestones: [],
   customStatuses: [],
   tooltipEnabled: true,
-  groups: [
-    {id:"be",     label:"⚡ Backend",      color:"#1d4ed8", light:"#dbeafe"},
-    {id:"algo",   label:"🤖 Algo",         color:"#b45309", light:"#fef3c7"},
-    {id:"data",   label:"🗄️  Data",        color:"#065f46", light:"#d1fae5"},
-    {id:"portal", label:"🎨 Portal / FE",  color:"#9d174d", light:"#fce7f3"},
-    {id:"devops", label:"🔧 DevOps",       color:"#5b21b6", light:"#ede9fe"},
-    {id:"qa",     label:"🧪 QA",           color:"#1e3a5f", light:"#dbeafe"},
-    {id:"pm",     label:"📋 Product (PM)", color:"#0e7490", light:"#cffafe"}
-  ],
-  tasks: [
-    {id:"be1",  g:"be",     gs:["be"],     label:"Core E2E oRTB — Banner & Native ✓",     s:0,   e:2,  st:"done",  tk:"RNS-8",      blocks:[],blockedBy:[]},
-    {id:"be2",  g:"be",     gs:["be"],     label:"oRTB Video + SPO basic flow",            s:2,   e:4,  st:"wip",   tk:"RNS-8",      blocks:[],blockedBy:[]},
-    {id:"be3",  g:"be",     gs:["be"],     label:"IVT / Enrichments / Writing events",     s:2,   e:5,  st:"wip",   tk:"SB/RNS",     blocks:[],blockedBy:[]},
-    {id:"be4",  g:"be",     gs:["be"],     label:"Schain / MaxMind / Display resp (SB)",   s:2,   e:4,  st:"wip",   tk:"SB-19/45/51",blocks:[],blockedBy:[]},
-    {id:"be5",  g:"be",     gs:["be"],     label:"Algo API stubs — 4 APIs (RNS-13)",       s:2,   e:5,  st:"todo",  tk:"RNS-13",     blocks:[],blockedBy:[]},
-    {id:"be6",  g:"be",     gs:["be"],     label:"Rules Engine BE (RNS-4)",                s:3,   e:6,  st:"risk",  tk:"RNS-4",      blocks:[],blockedBy:[]},
-    {id:"be7",  g:"be",     gs:["be"],     label:"Demand Config + Publisher mgmt",         s:3,   e:5,  st:"todo",  tk:"RNS-5/10",   blocks:[],blockedBy:[]},
-    {id:"be8",  g:"be",     gs:["be"],     label:"Bidder connectivity (RNS-2)",            s:3,   e:5,  st:"todo",  tk:"RNS-2",      blocks:[],blockedBy:[]},
-    {id:"be9",  g:"be",     gs:["be"],     label:"Audience as Service (RNS-107)",          s:4,   e:6,  st:"risk",  tk:"RNS-107",    blocks:[],blockedBy:[]},
-    {id:"be10", g:"be",     gs:["be"],     label:"Deals / PMP (RNS-139)",                  s:4,   e:7,  st:"todo",  tk:"RNS-139",    blocks:[],blockedBy:[]},
-    {id:"be11", g:"be",     gs:["be"],     label:"S2S Adapter (RNS-146)",                  s:5,   e:8,  st:"todo",  tk:"RNS-146",    blocks:[],blockedBy:[]},
-    {id:"al1",  g:"algo",   gs:["algo"],   label:"4 Algo API Specs signed off ✓",          s:0,   e:2,  st:"done",  tk:"RNS-13",     blocks:[],blockedBy:[]},
-    {id:"al2",  g:"algo",   gs:["algo"],   label:"Protobuf / stub perf testing",           s:2,   e:3,  st:"wip",   tk:"AO",         blocks:[],blockedBy:[]},
-    {id:"al3",  g:"algo",   gs:["algo"],   label:"Algo data readiness (AO-4575)",          s:3,   e:5,  st:"risk",  tk:"AO-4575",    blocks:[],blockedBy:[]},
-    {id:"al4",  g:"algo",   gs:["algo"],   label:"Algo serving integration (RNS-1)",       s:4,   e:6,  st:"todo",  tk:"RNS-1",      blocks:[],blockedBy:[]},
-    {id:"al5",  g:"algo",   gs:["algo"],   label:"Model improvements (M1.5)",              s:5,   e:9,  st:"todo",  tk:"AO",         blocks:[],blockedBy:[]},
-    {id:"da1",  g:"data",   gs:["data"],   label:"SSP data schema design (BD-10035)",      s:2,   e:4,  st:"wip",   tk:"BD-10035",   blocks:[],blockedBy:[]},
-    {id:"da2",  g:"data",   gs:["data"],   label:"Algo Patch ETLs — SST / BFS",           s:2,   e:4,  st:"wip",   tk:"SDP-4784/5", blocks:[],blockedBy:[]},
-    {id:"da3",  g:"data",   gs:["data"],   label:"Event producer flows x4 (SDP)",          s:3,   e:6,  st:"todo",  tk:"SDP-4786-9", blocks:[],blockedBy:[]},
-    {id:"da4",  g:"data",   gs:["data"],   label:"DWH tables — sspAGG / Win-Lose",        s:3,   e:5,  st:"wip",   tk:"BD-10111/17",blocks:[],blockedBy:[]},
-    {id:"da5",  g:"data",   gs:["data"],   label:"P2 data architecture",                   s:5,   e:9,  st:"todo",  tk:"RNS-6",      blocks:[],blockedBy:[]},
-    {id:"po1",  g:"portal", gs:["portal"], label:"Supply & Demand wireframes ✓",           s:0,   e:2,  st:"done",  tk:"RNS-156",    blocks:[],blockedBy:[]},
-    {id:"po2",  g:"portal", gs:["portal"], label:"Rules Engine + Dashboard wireframes",    s:2,   e:4,  st:"wip",   tk:"RNS-156",    blocks:[],blockedBy:[]},
-    {id:"po3",  g:"portal", gs:["portal"], label:"Templates adaptation (Matan)",           s:3,   e:5,  st:"todo",  tk:"RNS-156",    blocks:[],blockedBy:[]},
-    {id:"po4",  g:"portal", gs:["portal"], label:"Supply & Demand screens (Ilia M.)",      s:4,   e:7,  st:"todo",  tk:"RNS-10/5",   blocks:[],blockedBy:[]},
-    {id:"po5",  g:"portal", gs:["portal"], label:"Rules Engine UI (RNS-4.5)",              s:4,   e:8,  st:"risk",  tk:"RNS-4.5",    blocks:[],blockedBy:[]},
-    {id:"po6",  g:"portal", gs:["portal"], label:"Dashboard + Admin UI",                   s:6,   e:9,  st:"todo",  tk:"RNS-7",      blocks:[],blockedBy:[]},
-    {id:"dv1",  g:"devops", gs:["devops"], label:"K8s cluster + CI/CD pipeline ✓",         s:0,   e:2,  st:"done",  tk:"OPS-8911",   blocks:[],blockedBy:[]},
-    {id:"dv2",  g:"devops", gs:["devops"], label:"Istio Ambient Mesh (OPS-8939)",          s:2,   e:4,  st:"risk",  tk:"OPS-8939",   blocks:[],blockedBy:[]},
-    {id:"dv3",  g:"devops", gs:["devops"], label:"SigNoz + Staging env",                   s:2,   e:4,  st:"wip",   tk:"OPS-8938/42",blocks:[],blockedBy:[]},
-    {id:"dv4",  g:"devops", gs:["devops"], label:"Vault + Load testing env",               s:3,   e:5,  st:"todo",  tk:"OPS-8945/9", blocks:[],blockedBy:[]},
-    {id:"dv5",  g:"devops", gs:["devops"], label:"Production cluster ready",               s:4,   e:6,  st:"todo",  tk:"OPS-8950",   blocks:[],blockedBy:[]},
-    {id:"dv6",  g:"devops", gs:["devops"], label:"Monitoring & alerting (RNS-56)",         s:4,   e:7,  st:"todo",  tk:"RNS-56",     blocks:[],blockedBy:[]},
-    {id:"dv7",  g:"devops", gs:["devops"], label:"Scale & optimization (M1.5)",            s:6,   e:9,  st:"todo",  tk:"OPS",        blocks:[],blockedBy:[]},
-    {id:"qa1",  g:"qa",     gs:["qa"],     label:"QA framework setup",                     s:2,   e:3,  st:"wip",   tk:"RNS-32",     blocks:[],blockedBy:[]},
-    {id:"qa2",  g:"qa",     gs:["qa"],     label:"Manual QA onboarding (Mar 16)",          s:2,   e:3,  st:"wip",   tk:"RNS-32",     blocks:[],blockedBy:[]},
-    {id:"qa3",  g:"qa",     gs:["qa"],     label:"RTB + core flow test cases",             s:3,   e:5,  st:"todo",  tk:"RNS-32",     blocks:[],blockedBy:[]},
-    {id:"qa4",  g:"qa",     gs:["qa"],     label:"Algo API test cases",                    s:4,   e:6,  st:"todo",  tk:"RNS-32",     blocks:[],blockedBy:[]},
-    {id:"qa5",  g:"qa",     gs:["qa"],     label:"Full E2E regression suite",              s:5,   e:8,  st:"todo",  tk:"RNS-32",     blocks:[],blockedBy:[]},
-    {id:"qa6",  g:"qa",     gs:["qa"],     label:"M1 sign-off → M1.5 regression",         s:5,   e:9,  st:"todo",  tk:"RNS-32",     blocks:[],blockedBy:[]},
-    {id:"pm1",  g:"pm",     gs:["pm"],     label:"Workshop — Mar 23-24",                   s:2,   e:3,  st:"wip",   tk:"",           blocks:[],blockedBy:[]},
-    {id:"pm2",  g:"pm",     gs:["pm"],     label:"Target Rules spec  ⚠",                   s:2,   e:4,  st:"risk",  tk:"RNS-4",      blocks:[],blockedBy:[]},
-    {id:"pm3",  g:"pm",     gs:["pm"],     label:"Privacy + User Profile specs  ⚠",       s:2,   e:4,  st:"risk",  tk:"RNS-60",     blocks:[],blockedBy:[]},
-    {id:"pm4",  g:"pm",     gs:["pm"],     label:"Custom Integration + Configs spec",      s:3,   e:4,  st:"todo",  tk:"RNS-5",      blocks:[],blockedBy:[]},
-    {id:"pm5",  g:"pm",     gs:["pm"],     label:"M1 product coverage — epic closure",     s:3,   e:5,  st:"todo",  tk:"RNS-90",     blocks:[],blockedBy:[]}
-  ]
+  groups: [],
+  tasks: []
 };
 
 // ── Server / Read-only / Admin mode ──────────────────────────────────────────
