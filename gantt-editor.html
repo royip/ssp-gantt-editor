@@ -834,34 +834,39 @@ let state = {
 let _readOnly      = false;  // true in read-only server mode
 let _isServerMode  = false;  // true when connected to /api/gantt
 let _adminUnlocked = false;  // true once admin password verified
-let _sseSource     = null;   // EventSource for live updates in read-only mode
+let _sseSource      = null;  // EventSource for live updates in read-only mode
+let _sseRenderTimer = null;  // debounce handle for SSE-triggered re-renders
 
 function connectSSE() {
   if (_sseSource) { _sseSource.close(); _sseSource = null; }
   _sseSource = new EventSource('/api/updates');
-  _sseSource.onmessage = async () => {
-    // Admin saved — silently reload the latest state from server
-    const cs = document.getElementById('cloud-status');
-    cs.className = 'saving'; cs.textContent = '⟳ Updating…';
-    try {
-      const res  = await fetch('/api/gantt');
-      const data = await res.json();
-      if (data && data.tasks) {
-        state = data;
-        if (!state.customStatuses) state.customStatuses = [];
-        state.tasks.forEach(t => {
-          if (!t.gs)        t.gs        = t.g ? [t.g] : [];
-          if (!t.blocks)    t.blocks    = [];
-          if (!t.blockedBy) t.blockedBy = [];
-        });
-        if (state.lblW) { lblW = state.lblW; document.documentElement.style.setProperty('--lw', lblW + 'px'); }
-        render();
-        cs.className = 'saved'; cs.textContent = '✓ Updated';
-        setTimeout(() => { cs.textContent = ''; }, 2000);
+  _sseSource.onmessage = () => {
+    // Debounce: if multiple updates arrive in quick succession (e.g. during admin drag)
+    // only act on the last one
+    clearTimeout(_sseRenderTimer);
+    _sseRenderTimer = setTimeout(async () => {
+      const cs = document.getElementById('cloud-status');
+      cs.className = 'saving'; cs.textContent = '⟳ Updating…';
+      try {
+        const res  = await fetch('/api/gantt');
+        const data = await res.json();
+        if (data && data.tasks) {
+          state = data;
+          if (!state.customStatuses) state.customStatuses = [];
+          state.tasks.forEach(t => {
+            if (!t.gs)        t.gs        = t.g ? [t.g] : [];
+            if (!t.blocks)    t.blocks    = [];
+            if (!t.blockedBy) t.blockedBy = [];
+          });
+          if (state.lblW) { lblW = state.lblW; document.documentElement.style.setProperty('--lw', lblW + 'px'); }
+          render();
+          cs.className = 'saved'; cs.textContent = '✓ Updated';
+          setTimeout(() => { cs.textContent = ''; }, 2000);
+        }
+      } catch(e) {
+        cs.className = 'error'; cs.textContent = '⚠ Sync failed';
       }
-    } catch(e) {
-      cs.className = 'error'; cs.textContent = '⚠ Sync failed';
-    }
+    }, 300);
   };
   _sseSource.onerror = () => {
     // Connection dropped — browser auto-reconnects; no action needed
@@ -870,6 +875,7 @@ function connectSSE() {
 
 function disconnectSSE() {
   if (_sseSource) { _sseSource.close(); _sseSource = null; }
+  clearTimeout(_sseRenderTimer);
 }
 
 function setServerMode(readOnly) {
@@ -917,26 +923,32 @@ async function loadFromServer() {
   setTimeout(() => { if (cs.textContent.startsWith('✓')) cs.textContent = ''; }, 3000);
 }
 
-async function saveToCloud() {
+let _cloudSaveTimer = null;
+function saveToCloud() {
   if (!_isServerMode || !_adminUnlocked) return;
+  // Show pending indicator immediately so the user sees feedback during drag
   const cs = document.getElementById('cloud-status');
   cs.className = 'saving'; cs.textContent = '⟳ Saving…';
-  try {
-    const pw  = sessionStorage.getItem('gantt-admin-pw') || '';
-    const res = await fetch('/api/gantt', {
-      method: 'POST',
-      headers: {'Content-Type':'application/json'},
-      body: JSON.stringify({ password: pw, data: state })
-    });
-    if (res.ok) {
-      cs.className = 'saved'; cs.textContent = '✓ Saved to server';
-      setTimeout(() => { cs.textContent = ''; }, 2500);
-    } else {
-      cs.className = 'error'; cs.textContent = '⚠ Save failed';
+  // Debounce: coalesce rapid changes (e.g. every pixel of a bar drag) into one POST
+  clearTimeout(_cloudSaveTimer);
+  _cloudSaveTimer = setTimeout(async () => {
+    try {
+      const pw  = sessionStorage.getItem('gantt-admin-pw') || '';
+      const res = await fetch('/api/gantt', {
+        method: 'POST',
+        headers: {'Content-Type':'application/json'},
+        body: JSON.stringify({ password: pw, data: state })
+      });
+      if (res.ok) {
+        cs.className = 'saved'; cs.textContent = '✓ Saved to server';
+        setTimeout(() => { cs.textContent = ''; }, 2500);
+      } else {
+        cs.className = 'error'; cs.textContent = '⚠ Save failed';
+      }
+    } catch(e) {
+      cs.className = 'error'; cs.textContent = '⚠ Server unreachable';
     }
-  } catch(e) {
-    cs.className = 'error'; cs.textContent = '⚠ Server unreachable';
-  }
+  }, 400);
 }
 
 function openAdminModal() {
