@@ -1,0 +1,1922 @@
+{
+  "ver": 2,
+  "title": "Modernized SSP — Epic-Level Gantt",
+  "months": [
+    {
+      "label": "Jan"
+    },
+    {
+      "label": "Feb"
+    },
+    {
+      "label": "Mar"
+    },
+    {
+      "label": "Apr"
+    },
+    {
+      "label": "May"
+    },
+    {
+      "label": "Jun"
+    },
+    {
+      "label": "Jul"
+    },
+    {
+      "label": "Aug"
+    },
+    {
+      "label": "Sep"
+    },
+    {
+      "label": "Oct"
+    },
+    {
+      "label": "Nov"
+    },
+    {
+      "label": "Dec"
+    }
+  ],
+  "milestones": [
+    {
+      "id": "ms1",
+      "month": 5.5,
+      "label": "★  M1",
+      "sub": "",
+      "color": "#ef4444"
+    },
+    {
+      "id": "ms2",
+      "month": 8.5,
+      "label": "★  M1.5",
+      "sub": "",
+      "color": "#7c3aed"
+    },
+    {
+      "id": "fxrrtvt3",
+      "month": 11,
+      "label": "★  M2",
+      "sub": "",
+      "color": "#4248f0"
+    }
+  ],
+  "groups": [
+    {
+      "id": "be",
+      "label": "⚡ Backend",
+      "color": "#1d4ed8",
+      "light": "#dbeafe"
+    },
+    {
+      "id": "algo",
+      "label": "🤖 Algo",
+      "color": "#b45309",
+      "light": "#fef3c7"
+    },
+    {
+      "id": "1vsf5xxv",
+      "label": "SDP",
+      "color": "#135314",
+      "light": "#13531433"
+    },
+    {
+      "id": "data",
+      "label": "🗄️  Data Ops",
+      "color": "#065f46",
+      "light": "#d1fae5"
+    },
+    {
+      "id": "portal",
+      "label": "🎨 Portal",
+      "color": "#4c179b",
+      "light": "#4c179b33"
+    },
+    {
+      "id": "devops",
+      "label": "🔧 DevOps",
+      "color": "#b59c21",
+      "light": "#b59c2133"
+    },
+    {
+      "id": "pm",
+      "label": "📋 Product",
+      "color": "#684040",
+      "light": "#68404033"
+    },
+    {
+      "id": "tjvsytwt",
+      "label": "</> Platform",
+      "color": "#6366f1",
+      "light": "#6366f133"
+    },
+    {
+      "id": "7sqkxkhq",
+      "label": "BI",
+      "color": "#6366f1",
+      "light": "#6366f133"
+    },
+    {
+      "id": "qa",
+      "label": "🧪 QA",
+      "color": "#1e3a5f",
+      "light": "#dbeafe"
+    },
+    {
+      "id": "dc1l2o79",
+      "label": "🔎 Business Analyst",
+      "color": "#64c7f2",
+      "light": "#64c7f233"
+    },
+    {
+      "id": "s9t4ms8v",
+      "label": "🗂️ Hiring",
+      "color": "#63e2f2",
+      "light": "#63e2f233"
+    }
+  ],
+  "tasks": [
+    {
+      "id": "o0ia33be",
+      "g": "be",
+      "label": "Onboarding & Training",
+      "s": 1,
+      "e": 2,
+      "st": "done",
+      "color": "#6366f1",
+      "tk": "",
+      "gs": [
+        "be"
+      ],
+      "blocks": [],
+      "blockedBy": []
+    },
+    {
+      "id": "a00xgj4j",
+      "g": "be",
+      "label": "Project Setup",
+      "s": 0,
+      "e": 2,
+      "st": "done",
+      "color": "#6366f1",
+      "tk": "",
+      "gs": [
+        "be"
+      ],
+      "blocks": [],
+      "blockedBy": []
+    },
+    {
+      "id": "be1",
+      "g": "be",
+      "gs": [
+        "be"
+      ],
+      "label": "Core oRTB flow",
+      "s": 0.5,
+      "e": 2.5,
+      "st": "done",
+      "color": "#6366f1",
+      "tk": "",
+      "blocks": [],
+      "blockedBy": []
+    },
+    {
+      "id": "be2",
+      "g": "be",
+      "gs": [
+        "be"
+      ],
+      "label": "SPO basic+ special case",
+      "s": 1.5,
+      "e": 3,
+      "st": "done",
+      "color": "#6366f1",
+      "tk": "",
+      "blocks": [],
+      "blockedBy": []
+    },
+    {
+      "id": "cdjqjfb4",
+      "g": "be",
+      "gs": [
+        "be"
+      ],
+      "label": "oRTB ver Up/Downgrade",
+      "s": 2,
+      "e": 2.5,
+      "st": "done",
+      "color": "#6366f1",
+      "tk": "",
+      "blocks": [],
+      "blockedBy": []
+    },
+    {
+      "id": "be3",
+      "g": "be",
+      "gs": [
+        "be"
+      ],
+      "label": "Enrichers",
+      "s": 2,
+      "e": 3.5,
+      "st": "wip",
+      "color": "#6366f1",
+      "tk": "",
+      "blocks": [],
+      "blockedBy": []
+    },
+    {
+      "id": "4pohuhyn",
+      "g": "be",
+      "gs": [
+        "be"
+      ],
+      "label": "IVT Integration",
+      "s": 2,
+      "e": 3.5,
+      "st": "wip",
+      "color": "#6366f1",
+      "tk": "",
+      "moreInfo": "",
+      "comments": "",
+      "blocks": [],
+      "blockedBy": []
+    },
+    {
+      "id": "dzijsod1",
+      "g": "be",
+      "gs": [
+        "be"
+      ],
+      "label": "Template Selection",
+      "s": 2.5,
+      "e": 3.5,
+      "st": "done",
+      "color": "#6366f1",
+      "tk": "",
+      "moreInfo": "",
+      "comments": "",
+      "blocks": [],
+      "blockedBy": []
+    },
+    {
+      "id": "18p3gklh",
+      "g": "be",
+      "gs": [
+        "be"
+      ],
+      "label": "Targeting Rules",
+      "s": 2.5,
+      "e": 3.5,
+      "st": "wip",
+      "color": "#6366f1",
+      "tk": "",
+      "blocks": [],
+      "blockedBy": []
+    },
+    {
+      "id": "w84on5y7",
+      "g": "be",
+      "gs": [
+        "be"
+      ],
+      "label": "Tracking Service",
+      "s": 3.5,
+      "e": 4.5,
+      "st": "wip",
+      "color": "#6366f1",
+      "tk": "",
+      "moreInfo": "",
+      "comments": "",
+      "blocks": [],
+      "blockedBy": []
+    },
+    {
+      "id": "be5",
+      "g": "tjvsytwt",
+      "gs": [
+        "tjvsytwt"
+      ],
+      "label": "Algo stubs",
+      "s": 2,
+      "e": 3,
+      "st": "done",
+      "color": "#6366f1",
+      "tk": "",
+      "blocks": [],
+      "blockedBy": []
+    },
+    {
+      "id": "be6",
+      "g": "be",
+      "gs": [
+        "be"
+      ],
+      "label": "Rules Engine",
+      "s": 3,
+      "e": 4,
+      "st": "wip",
+      "color": "#6366f1",
+      "tk": "",
+      "moreInfo": "",
+      "comments": "",
+      "blocks": [],
+      "blockedBy": []
+    },
+    {
+      "id": "al1",
+      "g": "algo",
+      "label": "Algo API Specs & Contract",
+      "s": 0,
+      "e": 2,
+      "st": "done",
+      "color": "#6366f1",
+      "tk": "RNS-13",
+      "gs": [
+        "algo"
+      ],
+      "blocks": [],
+      "blockedBy": []
+    },
+    {
+      "id": "i2bci6hv",
+      "g": "algo",
+      "gs": [
+        "algo"
+      ],
+      "label": "Blockers Design placeholder",
+      "s": 2.5,
+      "e": 3.5,
+      "st": "todo",
+      "color": "#6366f1",
+      "tk": "",
+      "blocks": [],
+      "blockedBy": []
+    },
+    {
+      "id": "al3",
+      "g": "algo",
+      "gs": [
+        "algo"
+      ],
+      "label": "Phase1",
+      "s": 2,
+      "e": 3,
+      "st": "wip",
+      "color": "#6366f1",
+      "tk": "Foundation & infrastructure setup",
+      "blocks": [],
+      "blockedBy": [
+        "vmxnejhw",
+        "n9tm8g2r"
+      ]
+    },
+    {
+      "id": "al4",
+      "g": "algo",
+      "gs": [
+        "algo"
+      ],
+      "label": "Phase2",
+      "s": 3,
+      "e": 4.5,
+      "st": "risk",
+      "color": "#6366f1",
+      "tk": "Offline model retraining & validation",
+      "blocks": [],
+      "blockedBy": [
+        "650xi5um",
+        "qt24atfa",
+        "pwhow8g9"
+      ]
+    },
+    {
+      "id": "al5",
+      "g": "algo",
+      "gs": [
+        "algo"
+      ],
+      "label": "Phase3",
+      "s": 3,
+      "e": 4.5,
+      "st": "risk",
+      "color": "#6366f1",
+      "tk": "Online A/B testing & gradual rollout",
+      "blocks": [],
+      "blockedBy": [
+        "xqbli6u9"
+      ]
+    },
+    {
+      "id": "3mjg27hv",
+      "g": "data",
+      "gs": [
+        "data"
+      ],
+      "label": "Phase1",
+      "s": 0.5,
+      "e": 4,
+      "st": "wip",
+      "color": "#6366f1",
+      "tk": "",
+      "blocks": [],
+      "blockedBy": []
+    },
+    {
+      "id": "da5",
+      "g": "data",
+      "gs": [
+        "data"
+      ],
+      "label": "Phase 2",
+      "s": 2.5,
+      "e": 5.5,
+      "st": "risk",
+      "color": "#f26464",
+      "tk": "",
+      "blocks": [],
+      "blockedBy": []
+    },
+    {
+      "id": "imh8hgnj",
+      "g": "1vsf5xxv",
+      "gs": [
+        "1vsf5xxv"
+      ],
+      "label": "User Profile gRPC",
+      "s": 2,
+      "e": 3,
+      "st": "wip",
+      "color": "#6366f1",
+      "tk": "logging left",
+      "blocks": [],
+      "blockedBy": []
+    },
+    {
+      "id": "vmxnejhw",
+      "g": "data",
+      "gs": [
+        "data"
+      ],
+      "label": "New Vertica views for Algo Phase1",
+      "s": 2.5,
+      "e": 3.5,
+      "st": "todo",
+      "color": "#6366f1",
+      "tk": "NE, AE, LEAF - new schemas",
+      "blocks": [
+        "al3"
+      ],
+      "blockedBy": []
+    },
+    {
+      "id": "vj998zpz",
+      "g": "1vsf5xxv",
+      "gs": [
+        "1vsf5xxv"
+      ],
+      "label": "Events Consumers",
+      "s": 2.5,
+      "e": 4,
+      "st": "wip",
+      "color": "#6366f1",
+      "tk": "algo events, serving layer events",
+      "blocks": [],
+      "blockedBy": []
+    },
+    {
+      "id": "mtfghppx",
+      "g": "1vsf5xxv",
+      "gs": [
+        "1vsf5xxv"
+      ],
+      "label": "Flink implementation (ELT)",
+      "s": 2.5,
+      "e": 4.5,
+      "st": "todo",
+      "color": "#6366f1",
+      "tk": "",
+      "blocks": [],
+      "blockedBy": []
+    },
+    {
+      "id": "da2",
+      "g": "1vsf5xxv",
+      "gs": [
+        "1vsf5xxv"
+      ],
+      "label": "Managed Kafka",
+      "s": 3,
+      "e": 4.5,
+      "st": "todo",
+      "color": "#6366f1",
+      "tk": "Red Panda vs. Confluent",
+      "blocks": [],
+      "blockedBy": []
+    },
+    {
+      "id": "sljoy3nt",
+      "g": "data",
+      "gs": [
+        "data"
+      ],
+      "label": "SSP Tables Creation",
+      "s": 3,
+      "e": 3.5,
+      "st": "todo",
+      "color": "#6366f1",
+      "tk": "Avails, NE_Funnel, Ad_Funnel ;",
+      "blocks": [],
+      "blockedBy": []
+    },
+    {
+      "id": "pa1gbzld",
+      "g": "data",
+      "gs": [
+        "data"
+      ],
+      "label": "Algo Events Tables Creation",
+      "s": 3,
+      "e": 3.5,
+      "st": "todo",
+      "color": "#6366f1",
+      "tk": "(SDP+DataOps)",
+      "blocks": [],
+      "blockedBy": []
+    },
+    {
+      "id": "da4",
+      "g": "1vsf5xxv",
+      "gs": [
+        "1vsf5xxv"
+      ],
+      "label": "Reporting API (internal)",
+      "s": 3.5,
+      "e": 4,
+      "st": "todo",
+      "color": "#6366f1",
+      "tk": "SDP+DataOps",
+      "blocks": [],
+      "blockedBy": []
+    },
+    {
+      "id": "qd5qs7xp",
+      "g": "data",
+      "gs": [
+        "data"
+      ],
+      "label": "Algo events merge",
+      "s": 3.5,
+      "e": 4.5,
+      "st": "todo",
+      "color": "#6366f1",
+      "tk": "",
+      "blocks": [],
+      "blockedBy": []
+    },
+    {
+      "id": "8nby5m8x",
+      "g": "data",
+      "gs": [
+        "data"
+      ],
+      "label": "Data merge",
+      "s": 4,
+      "e": 4.5,
+      "st": "todo",
+      "color": "#6366f1",
+      "tk": "old+new with source flag",
+      "blocks": [],
+      "blockedBy": []
+    },
+    {
+      "id": "da1",
+      "g": "1vsf5xxv",
+      "gs": [
+        "1vsf5xxv"
+      ],
+      "label": "Data Service for Audience",
+      "s": 5.5,
+      "e": 6.5,
+      "st": "todo",
+      "color": "#6366f1",
+      "tk": "",
+      "blocks": [],
+      "blockedBy": []
+    },
+    {
+      "id": "xl25hq7n",
+      "g": "portal",
+      "gs": [
+        "portal"
+      ],
+      "label": "Syncs",
+      "s": 2,
+      "e": 5.5,
+      "st": "wip",
+      "color": "#6366f1",
+      "tk": "",
+      "blocks": [],
+      "blockedBy": []
+    },
+    {
+      "id": "po3",
+      "g": "portal",
+      "gs": [
+        "portal"
+      ],
+      "label": "Templates re-write",
+      "s": 2.5,
+      "e": 4,
+      "st": "wip",
+      "color": "#6366f1",
+      "tk": "",
+      "blocks": [],
+      "blockedBy": []
+    },
+    {
+      "id": "po2",
+      "g": "portal",
+      "label": "Targeting Rules",
+      "s": 3,
+      "e": 4.5,
+      "st": "todo",
+      "color": "#6366f1",
+      "tk": "",
+      "gs": [
+        "portal"
+      ],
+      "blocks": [],
+      "blockedBy": []
+    },
+    {
+      "id": "po4",
+      "g": "portal",
+      "gs": [
+        "portal"
+      ],
+      "label": "Supply screens",
+      "s": 3.5,
+      "e": 5,
+      "st": "risk",
+      "color": "#eb0a0a",
+      "tk": "",
+      "blocks": [],
+      "blockedBy": [
+        "t66rha4t"
+      ]
+    },
+    {
+      "id": "po6",
+      "g": "portal",
+      "gs": [
+        "portal"
+      ],
+      "label": "Main Dashboard",
+      "s": 4,
+      "e": 4.5,
+      "st": "todo",
+      "color": "#6366f1",
+      "tk": "",
+      "blocks": [],
+      "blockedBy": [
+        "t66rha4t"
+      ]
+    },
+    {
+      "id": "dv1",
+      "g": "devops",
+      "gs": [
+        "devops"
+      ],
+      "label": "K8s cluster + CI/CD pipeline",
+      "s": 0,
+      "e": 2,
+      "st": "done",
+      "color": "#6366f1",
+      "tk": "",
+      "blocks": [],
+      "blockedBy": []
+    },
+    {
+      "id": "dv2",
+      "g": "devops",
+      "label": "Infra layer implementation",
+      "s": 2,
+      "e": 3,
+      "st": "wip",
+      "color": "#6366f1",
+      "tk": "network, ingress, etc.",
+      "gs": [
+        "devops"
+      ],
+      "blocks": [],
+      "blockedBy": []
+    },
+    {
+      "id": "dv3",
+      "g": "devops",
+      "gs": [
+        "devops"
+      ],
+      "label": "SigNoz + Staging env",
+      "s": 1,
+      "e": 2.5,
+      "st": "done",
+      "color": "#6366f1",
+      "tk": "",
+      "blocks": [],
+      "blockedBy": []
+    },
+    {
+      "id": "dv5",
+      "g": "devops",
+      "gs": [
+        "devops"
+      ],
+      "label": "Production cluster ready",
+      "s": 3.5,
+      "e": 5,
+      "st": "wip",
+      "color": "#6366f1",
+      "tk": "",
+      "moreInfo": "",
+      "comments": "",
+      "blocks": [],
+      "blockedBy": []
+    },
+    {
+      "id": "dv6",
+      "g": "devops",
+      "gs": [
+        "devops"
+      ],
+      "label": "Monitoring & alerting (RNS-56)",
+      "s": 3,
+      "e": 6,
+      "st": "todo",
+      "color": "#6366f1",
+      "tk": "",
+      "blocks": [],
+      "blockedBy": []
+    },
+    {
+      "id": "dv7",
+      "g": "devops",
+      "gs": [
+        "devops"
+      ],
+      "label": "Scale & optimization (M1.5)",
+      "s": 5,
+      "e": 9,
+      "st": "todo",
+      "color": "#6366f1",
+      "tk": "",
+      "blocks": [],
+      "blockedBy": []
+    },
+    {
+      "id": "qa1",
+      "g": "qa",
+      "gs": [
+        "qa"
+      ],
+      "label": "Onboarding & Setup",
+      "s": 2,
+      "e": 3,
+      "st": "wip",
+      "color": "#6366f1",
+      "tk": "",
+      "blocks": [],
+      "blockedBy": []
+    },
+    {
+      "id": "qa3",
+      "g": "qa",
+      "gs": [
+        "qa"
+      ],
+      "label": "RTB core flow",
+      "s": 3,
+      "e": 3.5,
+      "st": "todo",
+      "color": "#6366f1",
+      "tk": "",
+      "blocks": [],
+      "blockedBy": []
+    },
+    {
+      "id": "qa4",
+      "g": "qa",
+      "gs": [
+        "qa"
+      ],
+      "label": "Services",
+      "s": 3.5,
+      "e": 4.5,
+      "st": "todo",
+      "color": "#6366f1",
+      "tk": "",
+      "blocks": [],
+      "blockedBy": []
+    },
+    {
+      "id": "qa5",
+      "g": "qa",
+      "gs": [
+        "qa"
+      ],
+      "label": "Full E2E tests",
+      "s": 4,
+      "e": 5,
+      "st": "todo",
+      "color": "#6366f1",
+      "tk": "",
+      "blocks": [],
+      "blockedBy": []
+    },
+    {
+      "id": "91lky0jp",
+      "g": "pm",
+      "gs": [
+        "pm"
+      ],
+      "label": "Targeting Rules",
+      "s": 1.5,
+      "e": 3,
+      "st": "risk",
+      "color": "#6366f1",
+      "tk": "",
+      "blocks": [],
+      "blockedBy": []
+    },
+    {
+      "id": "t66rha4t",
+      "g": "pm",
+      "gs": [
+        "pm"
+      ],
+      "label": "Portal Designs",
+      "s": 1.5,
+      "e": 3.5,
+      "st": "risk",
+      "color": "#6366f1",
+      "tk": "Account, Admin Tools, Dashboard, Rules, Ext. view",
+      "blocks": [
+        "po4",
+        "alp3afum",
+        "saeqrx16",
+        "po6"
+      ],
+      "blockedBy": []
+    },
+    {
+      "id": "o3ixbd5m",
+      "g": "pm",
+      "gs": [
+        "pm"
+      ],
+      "label": "Privacy",
+      "s": 2,
+      "e": 3,
+      "st": "wip",
+      "color": "#6366f1",
+      "tk": "",
+      "blocks": [],
+      "blockedBy": []
+    },
+    {
+      "id": "kx00m89z",
+      "g": "pm",
+      "gs": [
+        "pm"
+      ],
+      "label": "ID5 A/B Test",
+      "s": 6,
+      "e": 7.5,
+      "st": "todo",
+      "color": "#6366f1",
+      "tk": "",
+      "blocks": [],
+      "blockedBy": []
+    },
+    {
+      "id": "igiov7mk",
+      "g": "pm",
+      "gs": [
+        "pm"
+      ],
+      "label": "Dashboard Reports",
+      "s": 2.5,
+      "e": 3.5,
+      "st": "todo",
+      "color": "#6366f1",
+      "tk": "",
+      "blocks": [],
+      "blockedBy": []
+    },
+    {
+      "id": "33ykmh3v",
+      "g": "pm",
+      "gs": [
+        "pm"
+      ],
+      "label": "Configs",
+      "s": 1.5,
+      "e": 3.5,
+      "st": "wip",
+      "color": "#6366f1",
+      "tk": "",
+      "blocks": [],
+      "blockedBy": []
+    },
+    {
+      "id": "q5cmyu33",
+      "g": "pm",
+      "gs": [
+        "pm"
+      ],
+      "label": "Audience as a Service",
+      "s": 2.5,
+      "e": 4,
+      "st": "todo",
+      "color": "#f26464",
+      "tk": "",
+      "blocks": [],
+      "blockedBy": []
+    },
+    {
+      "id": "o6i5nan2",
+      "g": "pm",
+      "gs": [
+        "pm"
+      ],
+      "label": "Lines of Biz",
+      "s": 5,
+      "e": 5.5,
+      "st": "todo",
+      "color": "#6366f1",
+      "tk": "",
+      "blocks": [],
+      "blockedBy": []
+    },
+    {
+      "id": "rtzzm7ql",
+      "g": "pm",
+      "gs": [
+        "pm"
+      ],
+      "label": "Custom Integrations / Decoration Rules",
+      "s": 2,
+      "e": 3.5,
+      "st": "risk",
+      "color": "#6366f1",
+      "tk": "",
+      "blocks": [],
+      "blockedBy": []
+    },
+    {
+      "id": "blyofx7m",
+      "g": "pm",
+      "gs": [
+        "pm"
+      ],
+      "label": "Algo Services",
+      "s": 3,
+      "e": 4,
+      "st": "todo",
+      "color": "#6366f1",
+      "tk": "",
+      "blocks": [
+        "pwhow8g9"
+      ],
+      "blockedBy": []
+    },
+    {
+      "id": "nqy6dhju",
+      "g": "pm",
+      "label": "Templates",
+      "s": 2.5,
+      "e": 3,
+      "st": "wip",
+      "color": "#6366f1",
+      "tk": "",
+      "gs": [
+        "pm"
+      ],
+      "blocks": [],
+      "blockedBy": []
+    },
+    {
+      "id": "u9jm46k4",
+      "g": "pm",
+      "label": "Entities",
+      "s": 0,
+      "e": 1,
+      "st": "done",
+      "color": "#6366f1",
+      "tk": "",
+      "gs": [
+        "pm"
+      ],
+      "blocks": [],
+      "blockedBy": []
+    },
+    {
+      "id": "6qc412hi",
+      "g": "pm",
+      "label": "Core SSP Flow",
+      "s": 0,
+      "e": 2,
+      "st": "done",
+      "color": "#6366f1",
+      "tk": "",
+      "gs": [
+        "pm"
+      ],
+      "blocks": [],
+      "blockedBy": []
+    },
+    {
+      "id": "jy7uo8i8",
+      "g": "pm",
+      "label": "Tmax",
+      "s": 1,
+      "e": 1.5,
+      "st": "done",
+      "color": "#6366f1",
+      "tk": "",
+      "gs": [
+        "pm"
+      ],
+      "blocks": [],
+      "blockedBy": []
+    },
+    {
+      "id": "tsnbsf0k",
+      "g": "s9t4ms8v",
+      "label": "HR Backend",
+      "s": 0,
+      "e": 2.5,
+      "st": "done",
+      "color": "#6366f1",
+      "tk": "",
+      "gs": [
+        "s9t4ms8v"
+      ],
+      "blocks": [],
+      "blockedBy": []
+    },
+    {
+      "id": "91vnz2wj",
+      "g": "s9t4ms8v",
+      "label": "HR QA",
+      "s": 1,
+      "e": 2.5,
+      "st": "done",
+      "color": "#6366f1",
+      "tk": "",
+      "gs": [
+        "s9t4ms8v"
+      ],
+      "blocks": [],
+      "blockedBy": []
+    },
+    {
+      "id": "tw22f6o2",
+      "g": "s9t4ms8v",
+      "label": "HR DataOps",
+      "s": 0,
+      "e": 1.5,
+      "st": "done",
+      "color": "#6366f1",
+      "tk": "Rani",
+      "gs": [
+        "s9t4ms8v"
+      ],
+      "blocks": [],
+      "blockedBy": []
+    },
+    {
+      "id": "6hfl509n",
+      "g": "s9t4ms8v",
+      "label": "HR Data Eng.",
+      "s": 0,
+      "e": 0.5,
+      "st": "done",
+      "color": "#6366f1",
+      "tk": "",
+      "gs": [
+        "s9t4ms8v"
+      ],
+      "blocks": [],
+      "blockedBy": []
+    },
+    {
+      "id": "xi344pk0",
+      "g": "s9t4ms8v",
+      "label": "HR DS",
+      "s": 0,
+      "e": 3.5,
+      "st": "custom",
+      "color": "#f26464",
+      "tk": "",
+      "gs": [
+        "s9t4ms8v"
+      ],
+      "blocks": [],
+      "blockedBy": []
+    },
+    {
+      "id": "7n0cgw87",
+      "g": "s9t4ms8v",
+      "label": "HR DevOps",
+      "s": 0,
+      "e": 1.5,
+      "st": "done",
+      "color": "#6366f1",
+      "tk": "",
+      "gs": [
+        "s9t4ms8v"
+      ],
+      "blocks": [],
+      "blockedBy": []
+    },
+    {
+      "id": "pm1",
+      "g": "s9t4ms8v",
+      "gs": [
+        "s9t4ms8v"
+      ],
+      "label": "Workshop — Mar 23-24",
+      "s": 2.5,
+      "e": 3,
+      "st": "wip",
+      "color": "#6366f1",
+      "tk": "",
+      "blocks": [],
+      "blockedBy": []
+    },
+    {
+      "id": "be8",
+      "g": "be",
+      "gs": [
+        "be"
+      ],
+      "label": "Decoration Rules - P1",
+      "s": 4,
+      "e": 5,
+      "st": "wip",
+      "color": "#6366f1",
+      "tk": "",
+      "moreInfo": "pre-defined (supply side)",
+      "comments": "",
+      "blocks": [],
+      "blockedBy": []
+    },
+    {
+      "id": "um6wvm9q",
+      "g": "be",
+      "gs": [
+        "be"
+      ],
+      "label": "Supply Config",
+      "s": 2.5,
+      "e": 3.5,
+      "st": "wip",
+      "color": "#6366f1",
+      "tk": "",
+      "moreInfo": "",
+      "comments": "",
+      "blocks": [],
+      "blockedBy": []
+    },
+    {
+      "id": "1389lmk5",
+      "g": "devops",
+      "gs": [
+        "devops"
+      ],
+      "label": "SigNoz Observability",
+      "s": 1,
+      "e": 2,
+      "st": "done",
+      "color": "#6366f1",
+      "tk": "",
+      "blocks": [],
+      "blockedBy": []
+    },
+    {
+      "id": "ct14i556",
+      "g": "be",
+      "gs": [
+        "be"
+      ],
+      "label": "Verbose Logging",
+      "s": 2,
+      "e": 3.5,
+      "st": "wip",
+      "color": "#6366f1",
+      "tk": "",
+      "blocks": [],
+      "blockedBy": []
+    },
+    {
+      "id": "pwhow8g9",
+      "g": "tjvsytwt",
+      "gs": [
+        "tjvsytwt"
+      ],
+      "label": "Gateway+Services Readiness",
+      "s": 2.5,
+      "e": 4,
+      "st": "wip",
+      "color": "#6366f1",
+      "tk": "Set up 4 gateways + A/B test framework",
+      "blocks": [
+        "al4"
+      ],
+      "blockedBy": [
+        "blyofx7m"
+      ]
+    },
+    {
+      "id": "3zf4sepd",
+      "g": "be",
+      "gs": [
+        "be"
+      ],
+      "label": "Events Integration",
+      "s": 2,
+      "e": 4,
+      "st": "wip",
+      "color": "#6366f1",
+      "tk": "",
+      "moreInfo": "",
+      "comments": "",
+      "blocks": [],
+      "blockedBy": []
+    },
+    {
+      "id": "be7",
+      "g": "be",
+      "gs": [
+        "be"
+      ],
+      "label": "Demand Configs",
+      "s": 2.5,
+      "e": 4,
+      "st": "wip",
+      "color": "#6366f1",
+      "tk": "",
+      "blocks": [],
+      "blockedBy": []
+    },
+    {
+      "id": "be10",
+      "g": "be",
+      "gs": [
+        "be"
+      ],
+      "label": "Deals (legacy)",
+      "s": 3.5,
+      "e": 4.5,
+      "st": "todo",
+      "color": "#6366f1",
+      "tk": "",
+      "moreInfo": "",
+      "comments": "",
+      "blocks": [],
+      "blockedBy": []
+    },
+    {
+      "id": "7ln11si5",
+      "g": "algo",
+      "gs": [
+        "algo"
+      ],
+      "label": "Phase4",
+      "s": 4.5,
+      "e": 5.5,
+      "st": "risk",
+      "color": "#6366f1",
+      "tk": "Cleanup & old SSP model cutover, Full transition to new SSP",
+      "blocks": [],
+      "blockedBy": [
+        "xerhbqp4",
+        "7gf4adas"
+      ]
+    },
+    {
+      "id": "77n47e5g",
+      "g": "devops",
+      "label": "Enabling required services on new cluster",
+      "s": 1.5,
+      "e": 4.5,
+      "st": "wip",
+      "color": "#6366f1",
+      "tk": "",
+      "gs": [
+        "devops"
+      ],
+      "blocks": [],
+      "blockedBy": []
+    },
+    {
+      "id": "sispu389",
+      "g": "portal",
+      "gs": [
+        "portal"
+      ],
+      "label": "Layout design",
+      "s": 2,
+      "e": 2.5,
+      "st": "done",
+      "color": "#6366f1",
+      "tk": "",
+      "blocks": [],
+      "blockedBy": []
+    },
+    {
+      "id": "saeqrx16",
+      "g": "portal",
+      "gs": [
+        "portal"
+      ],
+      "label": "Decoration Rules (supply)",
+      "s": 3.5,
+      "e": 5,
+      "st": "todo",
+      "color": "#6366f1",
+      "tk": "",
+      "blocks": [],
+      "blockedBy": [
+        "t66rha4t"
+      ]
+    },
+    {
+      "id": "ux7qu31t",
+      "g": "qa",
+      "label": "Testing backlog prep",
+      "s": 2,
+      "e": 3,
+      "st": "wip",
+      "color": "#6366f1",
+      "tk": "",
+      "gs": [
+        "qa"
+      ],
+      "blocks": [],
+      "blockedBy": []
+    },
+    {
+      "id": "alp3afum",
+      "g": "portal",
+      "gs": [
+        "portal"
+      ],
+      "label": "Demand Screens",
+      "s": 2.5,
+      "e": 4,
+      "st": "todo",
+      "color": "#6366f1",
+      "tk": "",
+      "blocks": [],
+      "blockedBy": [
+        "t66rha4t"
+      ]
+    },
+    {
+      "id": "cme45h34",
+      "g": "portal",
+      "gs": [
+        "portal"
+      ],
+      "label": "Admin Tools",
+      "s": 5,
+      "e": 5.5,
+      "st": "todo",
+      "color": "#6366f1",
+      "tk": "",
+      "blocks": [],
+      "blockedBy": []
+    },
+    {
+      "id": "w4q9yjs0",
+      "g": "qa",
+      "gs": [
+        "qa"
+      ],
+      "label": "Portal tests",
+      "s": 4,
+      "e": 5,
+      "st": "risk",
+      "color": "#e01515",
+      "tk": "",
+      "blocks": [],
+      "blockedBy": []
+    },
+    {
+      "id": "sqcl8slw",
+      "g": "qa",
+      "gs": [
+        "qa"
+      ],
+      "label": "Start.io specific features",
+      "s": 3.5,
+      "e": 4.5,
+      "st": "todo",
+      "color": "#6366f1",
+      "tk": "",
+      "blocks": [],
+      "blockedBy": []
+    },
+    {
+      "id": "im8rmwp1",
+      "g": "pm",
+      "gs": [
+        "pm"
+      ],
+      "label": "BI Reports",
+      "s": 3.5,
+      "e": 4.5,
+      "st": "todo",
+      "color": "#6366f1",
+      "tk": "",
+      "blocks": [],
+      "blockedBy": []
+    },
+    {
+      "id": "9q6se2hj",
+      "g": "be",
+      "gs": [
+        "be"
+      ],
+      "label": "BE Alerts",
+      "s": 5,
+      "e": 5.5,
+      "st": "todo",
+      "color": "#6366f1",
+      "tk": "",
+      "blocks": [],
+      "blockedBy": []
+    },
+    {
+      "id": "seym3tll",
+      "g": "data",
+      "gs": [
+        "data"
+      ],
+      "label": "DataOps Alerts",
+      "s": 4.5,
+      "e": 5.5,
+      "st": "todo",
+      "color": "#6366f1",
+      "tk": "",
+      "blocks": [],
+      "blockedBy": []
+    },
+    {
+      "id": "ipf0r3wl",
+      "g": "portal",
+      "gs": [
+        "portal"
+      ],
+      "label": "Migration Script",
+      "s": 4.5,
+      "e": 5.5,
+      "st": "todo",
+      "color": "#f00f0f",
+      "tk": "",
+      "blocks": [],
+      "blockedBy": []
+    },
+    {
+      "id": "rhcab2i7",
+      "g": "data",
+      "gs": [
+        "data"
+      ],
+      "label": "Lakehouse",
+      "s": 3.5,
+      "e": 7.5,
+      "st": "todo",
+      "color": "#6366f1",
+      "tk": "",
+      "blocks": [],
+      "blockedBy": []
+    },
+    {
+      "id": "co1gyhg5",
+      "g": "pm",
+      "gs": [
+        "pm"
+      ],
+      "label": "DSP Reports",
+      "s": 4,
+      "e": 5.5,
+      "st": "cs_j9m4e3o7",
+      "color": "#6366f1",
+      "tk": "",
+      "blocks": [],
+      "blockedBy": []
+    },
+    {
+      "id": "ehxg2x62",
+      "g": "pm",
+      "gs": [
+        "pm"
+      ],
+      "label": "DSP Decoupling",
+      "s": 5,
+      "e": 6,
+      "st": "cs_j9m4e3o7",
+      "color": "#6366f1",
+      "tk": "",
+      "blocks": [],
+      "blockedBy": []
+    },
+    {
+      "id": "lz5ogm21",
+      "g": "algo",
+      "gs": [
+        "algo"
+      ],
+      "label": "New AI Infra",
+      "s": 0,
+      "e": 7,
+      "st": "wip",
+      "color": "#ed0707",
+      "tk": "",
+      "blocks": [],
+      "blockedBy": []
+    },
+    {
+      "id": "jmvivw1m",
+      "g": "tjvsytwt",
+      "gs": [
+        "tjvsytwt"
+      ],
+      "label": "Event doc update",
+      "s": 3.5,
+      "e": 4,
+      "st": "todo",
+      "color": "#6366f1",
+      "tk": "Integrate Algo group sizes into event documentation",
+      "blocks": [],
+      "blockedBy": []
+    },
+    {
+      "id": "be11",
+      "g": "tjvsytwt",
+      "gs": [
+        "tjvsytwt"
+      ],
+      "label": "S2S Adapter (RNS-146)",
+      "s": 3,
+      "e": 4,
+      "st": "todo",
+      "color": "#6366f1",
+      "tk": "RNS-146",
+      "blocks": [],
+      "blockedBy": []
+    },
+    {
+      "id": "n9tm8g2r",
+      "g": "devops",
+      "gs": [
+        "devops"
+      ],
+      "label": "Duplicate exporters",
+      "s": 2.5,
+      "e": 3.5,
+      "st": "todo",
+      "color": "#6366f1",
+      "tk": "Duplicate Vertica exporter applications",
+      "blocks": [
+        "al3"
+      ],
+      "blockedBy": []
+    },
+    {
+      "id": "650xi5um",
+      "g": "devops",
+      "gs": [
+        "devops"
+      ],
+      "label": "Cluster resources",
+      "s": 3,
+      "e": 4,
+      "st": "todo",
+      "color": "#6366f1",
+      "tk": "Provision additional compute/cluster resources (if needed)",
+      "blocks": [
+        "al4"
+      ],
+      "blockedBy": []
+    },
+    {
+      "id": "thcxudls",
+      "g": "dc1l2o79",
+      "gs": [
+        "dc1l2o79"
+      ],
+      "label": "[to delete] Table parity check",
+      "s": 2.5,
+      "e": 3.5,
+      "st": "todo",
+      "color": "#6366f1",
+      "tk": "Validate new vs. old Vertica tables (parity check)",
+      "blocks": [],
+      "blockedBy": []
+    },
+    {
+      "id": "xqbli6u9",
+      "g": "dc1l2o79",
+      "gs": [
+        "dc1l2o79"
+      ],
+      "label": "KPI comparison",
+      "s": 3.5,
+      "e": 4,
+      "st": "todo",
+      "color": "#6366f1",
+      "tk": "Compare KPIs old vs. new pipeline per model",
+      "blocks": [
+        "al5"
+      ],
+      "blockedBy": []
+    },
+    {
+      "id": "xerhbqp4",
+      "g": "dc1l2o79",
+      "gs": [
+        "dc1l2o79"
+      ],
+      "label": "A/B KPI sign-off",
+      "s": 4,
+      "e": 4.5,
+      "st": "todo",
+      "color": "#6366f1",
+      "tk": "A/B test KPI sign-off (gates traffic ramp-up)",
+      "blocks": [
+        "7ln11si5"
+      ],
+      "blockedBy": []
+    },
+    {
+      "id": "7gf4adas",
+      "g": "dc1l2o79",
+      "gs": [
+        "dc1l2o79"
+      ],
+      "label": "Final KPI analysis",
+      "s": 4.5,
+      "e": 5.5,
+      "st": "todo",
+      "color": "#6366f1",
+      "tk": "Final KPI analysis — new SSP vs. old SSP",
+      "blocks": [
+        "7ln11si5"
+      ],
+      "blockedBy": []
+    },
+    {
+      "id": "k86dei94",
+      "g": "data",
+      "gs": [
+        "data"
+      ],
+      "label": "Initial design",
+      "s": 0,
+      "e": 1.5,
+      "st": "done",
+      "color": "#6366f1",
+      "tk": "",
+      "blocks": [],
+      "blockedBy": []
+    },
+    {
+      "id": "qt24atfa",
+      "g": "portal",
+      "gs": [
+        "portal"
+      ],
+      "label": "Configs sync for Algo",
+      "s": 4,
+      "e": 4.5,
+      "st": "todo",
+      "color": "#6366f1",
+      "tk": "",
+      "blocks": [
+        "al4"
+      ],
+      "blockedBy": []
+    },
+    {
+      "id": "hytr49y0",
+      "g": "portal",
+      "gs": [
+        "portal"
+      ],
+      "label": "Logging Tool",
+      "s": 2,
+      "e": 4,
+      "st": "wip",
+      "color": "#6366f1",
+      "tk": "",
+      "blocks": [],
+      "blockedBy": []
+    },
+    {
+      "id": "60zmr4nc",
+      "g": "7sqkxkhq",
+      "gs": [
+        "7sqkxkhq"
+      ],
+      "label": "Business Alerts",
+      "s": 4,
+      "e": 5,
+      "st": "todo",
+      "color": "#6366f1",
+      "tk": "",
+      "blocks": [],
+      "blockedBy": []
+    },
+    {
+      "id": "fsznxc11",
+      "g": "be",
+      "gs": [
+        "be"
+      ],
+      "label": "Privacy",
+      "s": 2.5,
+      "e": 3.5,
+      "st": "done",
+      "color": "#6366f1",
+      "tk": "",
+      "moreInfo": "",
+      "comments": "",
+      "blocks": [],
+      "blockedBy": []
+    },
+    {
+      "id": "pdvejhlv",
+      "g": "pm",
+      "gs": [
+        "pm"
+      ],
+      "label": "Migration",
+      "s": 2.5,
+      "e": 3.5,
+      "st": "todo",
+      "color": "#6366f1",
+      "tk": "",
+      "blocks": [],
+      "blockedBy": []
+    },
+    {
+      "id": "cjeo65af",
+      "g": "pm",
+      "gs": [
+        "pm"
+      ],
+      "label": "Deals",
+      "s": 2.5,
+      "e": 3.5,
+      "st": "todo",
+      "color": "#6366f1",
+      "tk": "",
+      "blocks": [],
+      "blockedBy": []
+    },
+    {
+      "id": "ezhur5km",
+      "g": "pm",
+      "gs": [
+        "pm"
+      ],
+      "label": "Deeplinks",
+      "s": 2.5,
+      "e": 3.5,
+      "st": "done",
+      "color": "#6366f1",
+      "tk": "",
+      "blocks": [],
+      "blockedBy": []
+    },
+    {
+      "id": "769u4w66",
+      "g": "pm",
+      "gs": [
+        "pm"
+      ],
+      "label": "Size Groups",
+      "s": 2.5,
+      "e": 3.5,
+      "st": "todo",
+      "color": "#6366f1",
+      "tk": "",
+      "blocks": [],
+      "blockedBy": []
+    },
+    {
+      "id": "0tiuzbg8",
+      "g": "portal",
+      "gs": [
+        "portal"
+      ],
+      "label": "Decoration Rules (demand)",
+      "s": 4.5,
+      "e": 5,
+      "st": "todo",
+      "color": "#6366f1",
+      "tk": "",
+      "blocks": [],
+      "blockedBy": []
+    },
+    {
+      "id": "ers08rgk",
+      "g": "be",
+      "gs": [
+        "be"
+      ],
+      "label": "Decoration rules - P2",
+      "s": 4.5,
+      "e": 6,
+      "st": "todo",
+      "color": "#6366f1",
+      "tk": "(demand-side) dynamic conditions",
+      "moreInfo": "",
+      "comments": "",
+      "blocks": [],
+      "blockedBy": []
+    },
+    {
+      "id": "n1osgv4b",
+      "g": "be",
+      "gs": [
+        "be"
+      ],
+      "label": "LOB",
+      "s": 5,
+      "e": 6,
+      "st": "todo",
+      "color": "#6366f1",
+      "tk": "N2D, V2D, L2S",
+      "moreInfo": "",
+      "comments": "",
+      "blocks": [],
+      "blockedBy": []
+    },
+    {
+      "id": "be9",
+      "g": "be",
+      "gs": [
+        "be"
+      ],
+      "label": "Audience as Service",
+      "s": 4,
+      "e": 5,
+      "st": "todo",
+      "color": "#6366f1",
+      "tk": "",
+      "blocks": [],
+      "blockedBy": []
+    },
+    {
+      "id": "djp9ydhm",
+      "g": "be",
+      "gs": [
+        "be"
+      ],
+      "label": "Ad Platform CatchUp",
+      "s": 2,
+      "e": 5,
+      "st": "wip",
+      "color": "#6366f1",
+      "tk": "",
+      "moreInfo": "win/lose,",
+      "comments": "",
+      "blocks": [],
+      "blockedBy": []
+    }
+  ],
+  "lblW": 423,
+  "colPinned": false,
+  "customStatuses": [
+    {
+      "id": "cs_j9m4e3o7",
+      "label": "Pending",
+      "color": "#fd990d"
+    },
+    {
+      "id": "cs_mxru04js",
+      "label": "Cancelled",
+      "color": "#3a3836"
+    }
+  ],
+  "tooltipEnabled": true
+}
