@@ -834,6 +834,43 @@ let state = {
 let _readOnly      = false;  // true in read-only server mode
 let _isServerMode  = false;  // true when connected to /api/gantt
 let _adminUnlocked = false;  // true once admin password verified
+let _sseSource     = null;   // EventSource for live updates in read-only mode
+
+function connectSSE() {
+  if (_sseSource) { _sseSource.close(); _sseSource = null; }
+  _sseSource = new EventSource('/api/updates');
+  _sseSource.onmessage = async () => {
+    // Admin saved — silently reload the latest state from server
+    const cs = document.getElementById('cloud-status');
+    cs.className = 'saving'; cs.textContent = '⟳ Updating…';
+    try {
+      const res  = await fetch('/api/gantt');
+      const data = await res.json();
+      if (data && data.tasks) {
+        state = data;
+        if (!state.customStatuses) state.customStatuses = [];
+        state.tasks.forEach(t => {
+          if (!t.gs)        t.gs        = t.g ? [t.g] : [];
+          if (!t.blocks)    t.blocks    = [];
+          if (!t.blockedBy) t.blockedBy = [];
+        });
+        if (state.lblW) { lblW = state.lblW; document.documentElement.style.setProperty('--lw', lblW + 'px'); }
+        render();
+        cs.className = 'saved'; cs.textContent = '✓ Updated';
+        setTimeout(() => { cs.textContent = ''; }, 2000);
+      }
+    } catch(e) {
+      cs.className = 'error'; cs.textContent = '⚠ Sync failed';
+    }
+  };
+  _sseSource.onerror = () => {
+    // Connection dropped — browser auto-reconnects; no action needed
+  };
+}
+
+function disconnectSSE() {
+  if (_sseSource) { _sseSource.close(); _sseSource = null; }
+}
 
 function setServerMode(readOnly) {
   _isServerMode  = true;
@@ -848,6 +885,8 @@ function setServerMode(readOnly) {
   lockBtn.textContent   = readOnly ? '🔒' : '🔓';
   lockBtn.title         = readOnly ? 'Admin mode — click to unlock editing' : 'Admin mode active — click to lock';
   lockBtn.classList.toggle('unlocked', !readOnly);
+  // SSE: subscribe for live updates in read-only, disconnect in admin
+  if (readOnly) { connectSSE(); } else { disconnectSSE(); }
 }
 
 async function loadFromServer() {

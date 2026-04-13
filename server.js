@@ -6,10 +6,12 @@
  *   GET  /api/gantt          → returns current data file (public, read-only users)
  *   POST /api/gantt          → saves data file (admin, password-protected)
  *   POST /api/admin/verify   → verifies admin password (200 or 401)
+ *   GET  /api/updates        → SSE stream — pushes 'updated' event to all connected
+ *                              clients whenever admin saves; read-only users auto-reload
  *
  * Usage:
  *   npm install
- *   node server.js
+ *   PORT=3333 node server.js
  *
  * Configuration (environment variables):
  *   PORT                  → HTTP port (default: 3000)
@@ -35,6 +37,13 @@ function resolveDataFile() {
 }
 const DATA_FILE = resolveDataFile();
 
+// ── SSE: connected read-only clients ────────────────────────────────────────
+const sseClients = new Set();
+
+function broadcastUpdate() {
+  sseClients.forEach(res => res.write('data: updated\n\n'));
+}
+
 app.use(express.json({ limit: '10mb' }));
 
 // Serve static files from cwd (where gantt-editor.html lives)
@@ -50,10 +59,32 @@ app.get('/', (req, res) => {
   }
 });
 
+// ── GET /api/updates ─────────────────────────────────────────────────────────
+// SSE stream — clients subscribe once and receive a push whenever admin saves.
+app.get('/api/updates', (req, res) => {
+  res.setHeader('Content-Type',  'text/event-stream');
+  res.setHeader('Cache-Control', 'no-cache');
+  res.setHeader('Connection',    'keep-alive');
+  res.flushHeaders();
+
+  // Send an initial ping so the client knows the connection is live
+  res.write(':connected\n\n');
+
+  sseClients.add(res);
+
+  // Keep-alive ping every 25s (prevents proxies/browsers from closing idle connections)
+  const keepAlive = setInterval(() => res.write(':ping\n\n'), 25000);
+
+  req.on('close', () => {
+    clearInterval(keepAlive);
+    sseClients.delete(res);
+  });
+});
+
 // ── GET /api/gantt ──────────────────────────────────────────────────────────
 app.get('/api/gantt', (req, res) => {
   if (!fs.existsSync(DATA_FILE)) {
-    return res.json(null);   // no data yet — client will show empty state
+    return res.json(null);
   }
   try {
     const data = JSON.parse(fs.readFileSync(DATA_FILE, 'utf8'));
@@ -74,6 +105,7 @@ app.post('/api/gantt', (req, res) => {
   }
   try {
     fs.writeFileSync(DATA_FILE, JSON.stringify(data, null, 2), 'utf8');
+    broadcastUpdate();   // ← notify all connected read-only clients instantly
     res.json({ ok: true });
   } catch (e) {
     res.status(500).json({ error: 'Failed to write Gantt data: ' + e.message });
@@ -93,6 +125,6 @@ app.post('/api/admin/verify', (req, res) => {
 // ── Start ───────────────────────────────────────────────────────────────────
 app.listen(PORT, () => {
   console.log(`✅  SSP Gantt Editor running at http://localhost:${PORT}`);
-  console.log(`    Data file : ${DATA_FILE}${fs.existsSync(DATA_FILE) ? '' : '  ⚠️  (file not found yet — will be created on first admin save)'}`);
+  console.log(`    Data file : ${DATA_FILE}${fs.existsSync(DATA_FILE) ? '' : '  ⚠️  (not found yet — created on first admin save)'}`);
   console.log(`    Admin pw  : ${PASSWORD === 'password' ? '⚠️  default ("password") — change via GANTT_ADMIN_PASSWORD env var' : '(custom)'}`);
 });
