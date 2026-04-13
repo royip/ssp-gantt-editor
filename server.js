@@ -1,12 +1,11 @@
 /**
  * SSP Gantt Editor — Server
  *
- * Serves the static gantt-editor.html and provides two API endpoints
- * so all users see the same shared Gantt data:
+ * Run from inside the folder that contains gantt-editor.html and your JSON file.
  *
- *   GET  /api/gantt          → returns current gantt-data.json (public)
- *   POST /api/gantt          → saves new gantt-data.json (admin, password-protected)
- *   POST /api/admin/verify   → verifies the admin password (returns 200 or 401)
+ *   GET  /api/gantt          → returns current data file (public, read-only users)
+ *   POST /api/gantt          → saves data file (admin, password-protected)
+ *   POST /api/admin/verify   → verifies admin password (200 or 401)
  *
  * Usage:
  *   npm install
@@ -15,7 +14,8 @@
  * Configuration (environment variables):
  *   PORT                  → HTTP port (default: 3000)
  *   GANTT_ADMIN_PASSWORD  → admin password (default: 'password')
- *   GANTT_DATA_FILE       → path to the JSON data file (default: './gantt-data.json')
+ *   GANTT_DATA_FILE       → path to the JSON data file (default: auto-detected,
+ *                           looks for ssp-gantt.json then gantt-data.json in cwd)
  */
 
 const express  = require('express');
@@ -25,13 +25,32 @@ const path     = require('path');
 const app      = express();
 const PORT     = process.env.PORT || 3000;
 const PASSWORD = process.env.GANTT_ADMIN_PASSWORD || 'password';
-const DATA_FILE = path.resolve(process.env.GANTT_DATA_FILE || './gantt-data.json');
+
+// Auto-detect data file: prefer ssp-gantt.json, fall back to gantt-data.json
+function resolveDataFile() {
+  if (process.env.GANTT_DATA_FILE) return path.resolve(process.env.GANTT_DATA_FILE);
+  const preferred = path.resolve('./ssp-gantt.json');
+  if (fs.existsSync(preferred)) return preferred;
+  return path.resolve('./gantt-data.json');
+}
+const DATA_FILE = resolveDataFile();
 
 app.use(express.json({ limit: '10mb' }));
-app.use(express.static(path.dirname(DATA_FILE) === path.resolve('.') ? '.' : __dirname));
+
+// Serve static files from cwd (where gantt-editor.html lives)
+app.use(express.static('.'));
+
+// Root → serve gantt-editor.html directly
+app.get('/', (req, res) => {
+  const htmlFile = path.resolve('gantt-editor.html');
+  if (fs.existsSync(htmlFile)) {
+    res.sendFile(htmlFile);
+  } else {
+    res.status(404).send('gantt-editor.html not found. Make sure you are running server.js from the folder that contains it.');
+  }
+});
 
 // ── GET /api/gantt ──────────────────────────────────────────────────────────
-// Returns the current Gantt state JSON to anyone (read-only users included).
 app.get('/api/gantt', (req, res) => {
   if (!fs.existsSync(DATA_FILE)) {
     return res.json(null);   // no data yet — client will show empty state
@@ -45,7 +64,6 @@ app.get('/api/gantt', (req, res) => {
 });
 
 // ── POST /api/gantt ─────────────────────────────────────────────────────────
-// Saves new Gantt state. Requires correct admin password in the request body.
 app.post('/api/gantt', (req, res) => {
   const { password, data } = req.body || {};
   if (!password || password !== PASSWORD) {
@@ -63,7 +81,6 @@ app.post('/api/gantt', (req, res) => {
 });
 
 // ── POST /api/admin/verify ──────────────────────────────────────────────────
-// Lets the client check the password without sending data.
 app.post('/api/admin/verify', (req, res) => {
   const { password } = req.body || {};
   if (password === PASSWORD) {
@@ -76,6 +93,6 @@ app.post('/api/admin/verify', (req, res) => {
 // ── Start ───────────────────────────────────────────────────────────────────
 app.listen(PORT, () => {
   console.log(`✅  SSP Gantt Editor running at http://localhost:${PORT}`);
-  console.log(`    Data file : ${DATA_FILE}`);
+  console.log(`    Data file : ${DATA_FILE}${fs.existsSync(DATA_FILE) ? '' : '  ⚠️  (file not found yet — will be created on first admin save)'}`);
   console.log(`    Admin pw  : ${PASSWORD === 'password' ? '⚠️  default ("password") — change via GANTT_ADMIN_PASSWORD env var' : '(custom)'}`);
 });
