@@ -846,9 +846,11 @@
       "label": "Targeting Rules",
       "s": 1.5,
       "e": 3,
-      "st": "risk",
+      "st": "done",
       "color": "#6366f1",
       "tk": "",
+      "moreInfo": "",
+      "comments": "",
       "blocks": [],
       "blockedBy": []
     },
@@ -861,9 +863,11 @@
       "label": "Portal Designs",
       "s": 1.5,
       "e": 3.5,
-      "st": "risk",
+      "st": "wip",
       "color": "#6366f1",
       "tk": "Account, Admin Tools, Dashboard, Rules, Ext. view",
+      "moreInfo": "",
+      "comments": "",
       "blocks": [
         "po4",
         "alp3afum",
@@ -880,10 +884,12 @@
       ],
       "label": "Privacy",
       "s": 2,
-      "e": 3,
+      "e": 3.5,
       "st": "wip",
       "color": "#6366f1",
       "tk": "",
+      "moreInfo": "",
+      "comments": "",
       "blocks": [],
       "blockedBy": []
     },
@@ -1899,6 +1905,23 @@
       "color": "#6366f1",
       "tk": "",
       "moreInfo": "win/lose,",
+      "comments": "",
+      "blocks": [],
+      "blockedBy": []
+    },
+    {
+      "id": "sbtxx6t4",
+      "g": "pm",
+      "gs": [
+        "pm"
+      ],
+      "label": "Funnel view",
+      "s": 4,
+      "e": 5.5,
+      "st": "todo",
+      "color": "#6366f1",
+      "tk": "",
+      "moreInfo": "",
       "comments": "",
       "blocks": [],
       "blockedBy": []
