@@ -1,6 +1,6 @@
 # SSP Gantt Editor
 
-A self-contained, single-file interactive Gantt chart editor built for the Start.io Modernized SSP project. No build step, no dependencies — open the HTML file in any browser and start editing.
+A single-file interactive Gantt chart editor with a lightweight Node.js server for shared, real-time team access.
 
 ## Features
 
@@ -10,23 +10,93 @@ A self-contained, single-file interactive Gantt chart editor built for the Start
 - **Group/swim-lane layout** — organize tasks into color-coded groups with collapsible rows
 - **Milestones** — add milestone markers with custom labels and colors
 - **Custom statuses** — define your own status types with colors beyond the built-in set
-- **Autosave** — all changes persist to `localStorage` and auto-save to a local JSON file (400ms debounce)
-- **Import / Export** — load and save Gantt data as JSON; shareable across team members
+- **Autosave** — all changes persist automatically (400ms debounce) to the server JSON file
+- **Read-only mode** — team members open the page and see the latest Gantt live, with no editing access
+- **Admin mode** — password-protected editing; all changes broadcast instantly to all connected viewers via SSE
+- **Live updates** — read-only browsers update automatically when admin saves, no manual refresh needed
 - **Column pinning** — pin/unpin the label column for wide timelines
 - **Hover tooltips** — quick task info on hover (toggleable via Settings)
-- **Dark toolbar UI** — clean, minimal interface designed for focused planning
+
+## Files
+
+| File | Purpose |
+|------|---------|
+| `gantt-editor.html` | The full application — UI, logic, and styles in one file |
+| `server.js` | Node.js/Express server — serves the app and handles shared Gantt data |
+| `package.json` | Node.js dependencies (`express`) |
+| `ssp-gantt.json` | Gantt data file — auto-detected by the server, created on first admin save |
+
+## Server Setup (Required for Shared/Team Use)
+
+### Prerequisites
+
+- [Node.js](https://nodejs.org/) v16 or higher (includes npm)
+
+### Steps
+
+```bash
+# 1. Clone the repo
+git clone https://github.com/royip/ssp-gantt-editor.git
+cd ssp-gantt-editor
+
+# 2. Install dependencies
+npm install
+
+# 3. Start the server
+node server.js
+```
+
+The server starts on port 3000 by default. Open `http://localhost:3000` in your browser.
+
+### Configuration (environment variables)
+
+| Variable | Default | Description |
+|----------|---------|-------------|
+| `PORT` | `3000` | HTTP port to listen on |
+| `GANTT_ADMIN_PASSWORD` | `password` | Password for admin edit access — **change this in production** |
+| `GANTT_DATA_FILE` | auto-detected | Path to the JSON data file. Defaults to `ssp-gantt.json` if present, otherwise `gantt-data.json` |
+
+Example with custom settings:
+
+```bash
+PORT=3333 GANTT_ADMIN_PASSWORD=mysecretpw node server.js
+```
 
 ## Usage
 
-1. Open `gantt-editor.html` in any modern browser (Chrome, Firefox, Safari, Edge)
-2. Use the toolbar to add groups, tasks, and milestones
-3. Click any bar or task label to edit — including dependencies, ticket IDs, notes, and comments
-4. Use **Save / Load JSON** to export or import Gantt data
-5. Data autosaves to `localStorage` — your work is preserved on refresh
+### For read-only viewers (team members)
+1. Open the URL in any browser
+2. Click **☁️ View Latest** in the toolbar — or click **View Latest Gantt** in the welcome modal
+3. The Gantt loads in read-only mode and updates automatically whenever the admin saves
+
+### For the admin (Gantt owner)
+1. Open the URL in your browser
+2. Click **☁️ View Latest** to load the latest server state
+3. Click the **🔒** button in the toolbar and enter the admin password
+4. Edit freely — all changes auto-save to the server and broadcast to viewers instantly
+
+### Publishing your current Gantt to the server
+If you have a local Gantt (from a previous standalone session), save it to the data file first before switching to server mode:
+1. Click **💾** in the toolbar to save to `ssp-gantt.json`
+2. Then click **☁️ View Latest** → 🔒 to enter admin mode
+
+### Updating the data file in Git
+```bash
+git add ssp-gantt.json && git commit -m "Update Gantt data" && git push
+```
+
+## API Endpoints
+
+| Method | Path | Auth | Description |
+|--------|------|------|-------------|
+| `GET` | `/api/gantt` | None | Returns current Gantt JSON |
+| `POST` | `/api/gantt` | Password in body | Saves new Gantt JSON, broadcasts update to all viewers |
+| `POST` | `/api/admin/verify` | — | Verifies admin password |
+| `GET` | `/api/updates` | None | SSE stream — pushes `updated` event to all connected read-only clients on every admin save |
 
 ## Data Model
 
-Tasks are stored as JSON with the following structure:
+Tasks are stored as JSON:
 
 ```json
 {
@@ -45,22 +115,16 @@ Tasks are stored as JSON with the following structure:
 }
 ```
 
-`s` and `e` are month-unit positions (0.5 = mid-month).
-
-## Deployment
-
-This is a single HTML file with no external runtime dependencies. It can be served from any static web host:
-
-- Drop `gantt-editor.html` onto any web server or static hosting (S3, Nginx, GitHub Pages, etc.)
-- No Node.js, no build pipeline, no database required
-- For team-shared state, pair with a backend endpoint that reads/writes the JSON save file
+`s` and `e` are month-unit positions (0 = month start, 0.5 = mid-month, 1 = month end).
 
 ## Tech Stack
 
-- Vanilla JavaScript (ES2020+)
+- Vanilla JavaScript (ES2020+), no frontend build step
+- Node.js + Express for the server
 - SVG for dependency lines
+- Server-Sent Events (SSE) for live updates
 - CSS Grid / Flexbox layout
-- `localStorage` + File System Access API for persistence
+- `localStorage` + File System Access API for standalone (offline) persistence
 
 ## Project Context
 
