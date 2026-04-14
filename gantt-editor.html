@@ -397,6 +397,7 @@ body.read-only .m-edit-btn{display:none}
   <button class="btn bg btn-icon" onclick="saveJSON()" title="Save Gantt Data">💾</button>
   <button class="btn bs btn-icon" onclick="openJSONFile()" title="Load Gantt Data">📂</button>
   <input id="file-input" type="file" accept=".json" style="display:none" onchange="loadJSONFallback(event)">
+  <button class="btn bs" id="btn-load-server" onclick="loadFromServer()" title="Load latest Gantt from server (read-only)">☁️ View Latest</button>
   <span id="save-status" style="font-size:11px;color:#4ade80;opacity:0;transition:opacity .6s;white-space:nowrap"></span>
   <span id="cloud-status"></span>
   <span id="mode-badge"></span>
@@ -837,6 +838,8 @@ function setServerMode(readOnly) {
   lockBtn.classList.toggle('unlocked', !readOnly);
   // SSE: subscribe for live updates in read-only, disconnect in admin
   if (readOnly) { connectSSE(); } else { disconnectSSE(); }
+  // Hide the "View Latest" toolbar button once in server mode
+  document.getElementById('btn-load-server').style.display = 'none';
 }
 
 async function loadFromServer() {
